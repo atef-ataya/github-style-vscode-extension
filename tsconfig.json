@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "outDir": "./out",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "./extension.ts",
+    "./webviewContent.ts",
+    "./traeEngine.ts",
+    "src/analyzers/PatternAnalyzer.ts",
+    "src/generators/CodeGenerator.ts"
+  ],
+  "exclude": ["./out"]
+}
