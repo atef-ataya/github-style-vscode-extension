@@ -2,7 +2,7 @@
 
 A full-stack tool that scans your GitHub repositories, learns your personal coding style, and generates new code in your voice.
 
-This is the actual agent featured in my [YouTube tutorial](https://youtube.com/your-video-link) — complete with a backend analyzer and VS Code extension.
+This is the actual agent featured in my [YouTube tutorial](https://youtu.be/J6atjuGCDS0) — complete with a backend analyzer and VS Code extension.
 
 ---
 
@@ -110,6 +110,6 @@ MIT — use freely, modify, share.
 
 ## 🎮 Watch the Full Tutorial
 
-👉 [Watch on YouTube](https://youtube.com/your-video-link)
+👉 [Watch on YouTube](https://youtu.be/J6atjuGCDS0)
 
 ---
