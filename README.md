@@ -60,45 +60,34 @@ ANALYSIS_DEPTH=detailed
 4. **Run the tool manually or inside VS Code**
 
 ---
+## 🎮 Getting Started: Two Ways to Use
 
-## 🧑‍💻 Usage
-
-### Option A: Command Line (Code Analyzer)
-
-```ts
-import GitHubCodeAnalyzer from './src';
-
-const analyzer = new GitHubCodeAnalyzer(process.env.GITHUB_TOKEN, process.env.GITHUB_USERNAME);
-
-const run = async () => {
-  const repos = await analyzer.getPersonalRepositories();
-  const patterns = await analyzer.analyzeRepository(repos[0].name);
-
-  const spec = 'Create a REST API with login and register';
-  const code = await analyzer.generateCode(spec);
-  console.log(code);
-};
-
-run();
-```
-
-### Option B: VS Code Extension
-
-1. Open this project in VS Code
-2. Open the Command Palette → "GitStyle: Open Panel"
-3. Fill in your credentials
-4. Describe what you want to build
-5. Click **Analyze & Generate**
+You can either test the concept directly in the **TRAE AI IDE** or run the full extension **locally in VS Code**.
 
 ---
 
-## 📸 Screenshots (Optional)
+### ⚡ Option 1: Demo Inside TRAE AI (No Setup Required)
 
-> Add these images to `/assets/screenshots/` and use this format:
+This is the quickest way to see the agent’s capabilities. You can use my pre-trained agent that generates code based on my personal GitHub style.
 
-```md
-![Extension UI](assets/screenshots/extension-ui.png)
-```
+1. Go to the TRAE AI IDE
+2. Load the public **GitHub Style Agent** from the agent library  
+   👉 [Link to my public TRAE AI Agent](https://github.com/atef-ataya/github-style-vscode-extension.git)
+3. Enter a prompt and watch it generate code that mimics my style
+
+---
+
+### 💻 Option 2: Run Locally in VS Code (To Learn *Your* Style)
+
+Install the extension locally to analyze **your** GitHub repositories and generate code in **your** personal style.
+
+---
+
+#### 1. Clone the Repository
+
+```bash
+git clone https://github.com/atef-ataya/github-style-vscode-extension.git
+cd github-style-vscode-extension
 
 ---
 
