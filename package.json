@@ -26,7 +26,9 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint . --ext .ts",
-    "tsc": "tsc -p ./"
+    "tsc": "tsc -p ./",
+    "test": "echo \"No tests specified\" && exit 0",
+    "package": "vsce package"
   },
   "dependencies": {
     "@octokit/rest": "^19.0.13",
