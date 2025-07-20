@@ -1,0 +1,110 @@
+name: Tutorial Request
+description: Suggest a tutorial topic for this project
+title: "[TUTORIAL]: "
+formId: tutorial-request-form
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Tutorial Request
+        Thanks for suggesting a tutorial topic! Your input helps us create content that's valuable to the community.
+  - type: input
+    id: tutorial-title
+    attributes:
+      label: Tutorial Title
+      description: Suggest a title for this tutorial
+      placeholder: e.g., "How to Customize the GitHub Style Agent for React Projects"
+    validations:
+      required: true
+  - type: dropdown
+    id: difficulty-level
+    attributes:
+      label: Difficulty Level
+      description: What difficulty level would this tutorial be?
+      options:
+        - Beginner (No prior knowledge required)
+        - Intermediate (Basic understanding of the tool required)
+        - Advanced (In-depth knowledge of the tool required)
+        - Expert (For power users and contributors)
+    validations:
+      required: true
+  - type: dropdown
+    id: tutorial-format
+    attributes:
+      label: Preferred Format
+      description: What format would be most helpful for this tutorial?
+      options:
+        - Text-based guide with screenshots
+        - Video tutorial
+        - Interactive walkthrough
+        - Code samples with explanations
+        - Multiple formats
+    validations:
+      required: true
+  - type: textarea
+    id: tutorial-description
+    attributes:
+      label: Tutorial Description
+      description: Please describe what this tutorial should cover
+      placeholder: |
+        Explain what topics should be covered, what problems it would solve, and why it would be valuable to users.
+    validations:
+      required: true
+  - type: textarea
+    id: learning-objectives
+    attributes:
+      label: Learning Objectives
+      description: What should users learn from this tutorial?
+      placeholder: |
+        - How to...
+        - Understanding of...
+        - Ability to...
+    validations:
+      required: true
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: What should users already know before starting this tutorial?
+      placeholder: |
+        - Basic knowledge of...
+        - Familiarity with...
+        - Access to...
+    validations:
+      required: false
+  - type: textarea
+    id: example-scenarios
+    attributes:
+      label: Example Scenarios
+      description: Provide example scenarios or use cases that this tutorial would address
+      placeholder: |
+        Scenario 1: A developer wants to...
+        Scenario 2: A team needs to...
+    validations:
+      required: false
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute to this tutorial?
+      options:
+        - label: I'm willing to help create this tutorial
+          required: false
+        - label: I'm willing to review drafts of this tutorial
+          required: false
+  - type: input
+    id: contact-info
+    attributes:
+      label: Contact Information (Optional)
+      description: How can we reach you if we have questions about your request?
+      placeholder: e.g., GitHub username, email, or other contact method
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this request, you agree to follow our [Code of Conduct](https://github.com/atef-ataya/github-style-vscode-extension/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

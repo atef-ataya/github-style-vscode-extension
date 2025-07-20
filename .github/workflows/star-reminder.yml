@@ -1,0 +1,66 @@
+name: Star Reminder
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  star-reminder:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Star Reminder
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const author = context.payload.sender.login;
+            
+            // Skip for bot accounts and maintainers
+            if (author.endsWith('[bot]') || author === 'atef-ataya') {
+              return;
+            }
+            
+            // Check if the user has already starred the repo
+            try {
+              await github.rest.activity.checkRepoIsStarredByAuthenticatedUser({
+                owner,
+                repo
+              });
+              console.log(`${author} has already starred the repository.`);
+              return;
+            } catch (error) {
+              // User hasn't starred the repo, continue with reminder
+            }
+            
+            // Determine if this is an issue or PR
+            const isPR = !!context.payload.pull_request;
+            const number = isPR ? context.payload.pull_request.number : context.payload.issue.number;
+            
+            // Create a friendly reminder message
+            const message = `
+            👋 Hi @${author}, thanks for your ${isPR ? 'pull request' : 'issue'}!
+            
+            If you find this project useful, please consider giving it a ⭐️ star on GitHub. 
+            It helps the project grow and improves visibility, which benefits everyone in the community.
+            
+            [⭐️ Star this repo](https://github.com/${owner}/${repo})
+            
+            Thank you for your contribution!
+            `;
+            
+            // Post the comment
+            const commentMethod = isPR ? github.rest.issues.createComment : github.rest.issues.createComment;
+            await commentMethod({
+              owner,
+              repo,
+              issue_number: number,
+              body: message
+            });
+            
+            console.log(`Posted star reminder to ${isPR ? 'PR' : 'issue'} #${number} for ${author}.`);

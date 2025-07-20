@@ -1,0 +1,102 @@
+name: Purchase Report
+description: Report a successful purchase or licensing issue
+title: "[PURCHASE]: "
+formId: purchase-report-form
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Purchase Report Form
+        Thank you for your purchase! Please use this form to report any issues with your purchase or to provide feedback about the purchasing process.
+  - type: dropdown
+    id: purchase-type
+    attributes:
+      label: Purchase Type
+      description: What type of purchase did you make?
+      options:
+        - Individual License
+        - Team License
+        - Enterprise License
+        - Other (please specify in description)
+    validations:
+      required: true
+  - type: input
+    id: purchase-date
+    attributes:
+      label: Purchase Date
+      description: When did you make the purchase?
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+  - type: input
+    id: order-id
+    attributes:
+      label: Order ID / Transaction ID
+      description: Please provide your order or transaction ID if available
+      placeholder: e.g., ORD-12345-ABCDE
+    validations:
+      required: false
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What type of issue are you experiencing?
+      options:
+        - License Activation Problem
+        - Payment Issue
+        - Missing Features
+        - Refund Request
+        - General Feedback
+        - Other (please specify in description)
+    validations:
+      required: true
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Please describe the issue you're experiencing in detail
+      placeholder: Provide as much detail as possible about your purchase issue...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Please provide details about your environment
+      placeholder: |
+        - Operating System: [e.g., Windows 10, macOS Big Sur]
+        - VS Code Version: [e.g., 1.60.0]
+        - Extension Version: [e.g., 1.0.0]
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem (drag and drop images here)
+    validations:
+      required: false
+  - type: input
+    id: contact-email
+    attributes:
+      label: Contact Email
+      description: Email address used for purchase (will be kept private)
+      placeholder: email@example.com
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms
+      description: By submitting this report, you agree to our privacy policy and terms of service
+      options:
+        - label: I agree to the [privacy policy](https://github.com/atef-ataya/github-style-vscode-extension/blob/main/PRIVACY.md) and [terms of service](https://github.com/atef-ataya/github-style-vscode-extension/blob/main/TERMS.md)
+          required: true
+  - type: checkboxes
+    id: follow-up
+    attributes:
+      label: Follow-up
+      description: Would you like us to follow up with you regarding this report?
+      options:
+        - label: Yes, please contact me about this report
+          required: false

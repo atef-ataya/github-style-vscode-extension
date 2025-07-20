@@ -1,0 +1,92 @@
+name: Welcome New Contributors
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+jobs:
+  welcome-new-contributor:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Welcome Message
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const author = context.payload.sender.login;
+            
+            // Skip for bot accounts
+            if (author.endsWith('[bot]')) {
+              return;
+            }
+            
+            // Check if this is the user's first contribution
+            async function isFirstContribution() {
+              // Check previous issues
+              const issues = await github.rest.issues.listForRepo({
+                owner,
+                repo,
+                creator: author,
+                state: 'all'
+              });
+              
+              // Check previous PRs
+              const prs = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: 'all'
+              });
+              
+              const userPRs = prs.data.filter(pr => pr.user.login === author);
+              
+              // If this is the only issue/PR (current one), then it's the first contribution
+              return (issues.data.length <= 1 && userPRs.length === 0) || 
+                     (issues.data.length === 0 && userPRs.length <= 1);
+            }
+            
+            // Only welcome first-time contributors
+            if (await isFirstContribution()) {
+              // Determine if this is an issue or PR
+              const isPR = !!context.payload.pull_request;
+              const number = isPR ? context.payload.pull_request.number : context.payload.issue.number;
+              
+              // Create a welcome message
+              const message = `
+              # 🎉 Welcome @${author}! 
+              
+              Thank you for your first ${isPR ? 'pull request' : 'issue'} in the GitHub Style Agent project! We're excited to have you join our community.
+              
+              ## 📝 Next Steps
+              
+              - Please make sure you've read our [Contributing Guidelines](https://github.com/${owner}/${repo}/blob/main/docs/CONTRIBUTING.md)
+              - Join our [Discussions](https://github.com/${owner}/${repo}/discussions) to connect with other contributors
+              - Check out our [Documentation](https://github.com/${owner}/${repo}/tree/main/docs) to learn more about the project
+              
+              ## 🔍 Need Help?
+              
+              If you have any questions or need assistance, don't hesitate to ask in this ${isPR ? 'PR' : 'issue'} or reach out to the maintainers.
+              
+              We look forward to your contributions!
+              
+              The GitHub Style Agent Team
+              `;
+              
+              // Post the welcome comment
+              const commentMethod = isPR ? github.rest.issues.createComment : github.rest.issues.createComment;
+              await commentMethod({
+                owner,
+                repo,
+                issue_number: number,
+                body: message
+              });
+              
+              console.log(`Posted welcome message to ${isPR ? 'PR' : 'issue'} #${number} for ${author}.`);
+            } else {
+              console.log(`Not the first contribution for ${author}, skipping welcome message.`);
+            }

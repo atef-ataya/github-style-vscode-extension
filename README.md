@@ -1,10 +1,29 @@
 # 🧠 GitHub Style Agent — VS Code Extension + OpenAI Generator
 
+[![GitHub stars](https://img.shields.io/github/stars/atef-ataya/github-style-vscode-extension?style=social)](https://github.com/atef-ataya/github-style-vscode-extension/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/atef-ataya/github-style-vscode-extension?style=social)](https://github.com/atef-ataya/github-style-vscode-extension/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/atef-ataya/github-style-vscode-extension)](https://github.com/atef-ataya/github-style-vscode-extension/issues)
+[![GitHub license](https://img.shields.io/github/license/atef-ataya/github-style-vscode-extension)](https://github.com/atef-ataya/github-style-vscode-extension/blob/main/LICENSE)
+[![Twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fatef-ataya%2Fgithub-style-vscode-extension)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20GitHub%20Style%20Agent%20VS%20Code%20Extension:&url=https%3A%2F%2Fgithub.com%2Fatef-ataya%2Fgithub-style-vscode-extension)
+
 A full-stack tool that scans your GitHub repositories, learns your personal coding style, and generates new code in your voice.
 
 This is the actual agent featured in my [YouTube tutorial](https://youtu.be/J6atjuGCDS0) — complete with a backend analyzer and VS Code extension.
 
----
+<p align="center">
+  <img src="https://raw.githubusercontent.com/atef-ataya/github-style-vscode-extension/main/assets/github-style-agent-banner.png" alt="GitHub Style Agent Banner" width="800">
+</p>
+
+## 📚 Table of Contents
+
+- [Features](#-features)
+- [Technologies Used](#️-technologies-used)
+- [Installation](#️-installation)
+- [Getting Started](#-getting-started)
+- [How It Works](#-how-it-works)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Watch the Tutorial](#-watch-the-tutorial)
 
 ## 🚀 Features
 
@@ -14,17 +33,13 @@ This is the actual agent featured in my [YouTube tutorial](https://youtu.be/J6at
 * Generates new apps using OpenAI (e.g. Express.js, CRUD APIs, etc.)
 * Includes a working **VS Code extension UI** for easy prompting
 
----
-
 ## 🛠️ Technologies Used
 
-* 🧠 [TRAE AI](https://trae.ai/) (Builder Agent)
+* 🧠 AI-Powered Code Generation
 * 🔆 TypeScript + Node.js
 * ✨ OpenAI API
 * 🖡️ GitHub REST API
 * 🧹 VS Code Extension (Webview + Command palette)
-
----
 
 ## 🛠️ Installation
 
@@ -59,30 +74,11 @@ ANALYSIS_DEPTH=detailed
 
 4. **Run the tool manually or inside VS Code**
 
----
+## 🎮 Getting Started
 
-## 🎮 Getting Started: Two Ways to Use
-
-You can either test the concept directly in the **TRAE AI IDE** or run the full extension **locally in VS Code**.
-
----
-
-### ⚡ Option 1: Demo Inside TRAE AI (No Setup Required)
-
-This is the quickest way to see the agent’s capabilities. You can use my pre-trained agent that generates code based on my personal GitHub style.
-
-1. Go to the TRAE AI IDE
-2. Load the public **GitHub Style Agent** from the agent library
-   👉 [Link to my public TRAE AI Agent](https://github.com/atef-ataya/github-style-vscode-extension.git)
-3. Enter a prompt and watch it generate code that mimics my style
-
----
-
-### 💻 Option 2: Run Locally in VS Code (To Learn *Your* Style)
+### 💻 Run Locally in VS Code (To Learn *Your* Style)
 
 Install the extension locally to analyze **your** GitHub repositories and generate code in **your** personal style.
-
----
 
 #### 1. Clone the Repository
 
@@ -91,15 +87,11 @@ git clone https://github.com/atef-ataya/github-style-vscode-extension.git
 cd github-style-vscode-extension
 ```
 
----
-
 #### 2. Install Dependencies
 
 ```bash
 npm install
 ```
-
----
 
 #### 3. Configure Your Environment
 
@@ -126,8 +118,6 @@ MAX_REPOS_TO_ANALYZE=20
 ANALYSIS_DEPTH=detailed
 ```
 
----
-
 #### 4. Run the Extension
 
 1. Open the project in **VS Code**
@@ -137,24 +127,37 @@ ANALYSIS_DEPTH=detailed
 4. Type and select: `GitStyle: Open Panel`
 5. The extension's UI will appear in the side panel — ready to use!
 
----
+## 🧠 How It Works
 
-### 🧠 What Happens Next?
+1. **Repository Analysis**: The tool connects to GitHub and analyzes your repositories.
+2. **Style Extraction**: It identifies patterns in your coding style, including naming conventions, formatting preferences, and architectural choices.
+3. **Profile Creation**: A personalized style profile is created based on the analysis.
+4. **Code Generation**: When you provide a prompt, the tool uses your style profile and OpenAI to generate code that matches your personal style.
 
-* The tool will analyze your repositories
-* It will build a personal **style profile**
-* You’ll get auto-generated code that looks like *you* wrote it
+For more detailed information, check out the [documentation](./docs/quick-start.md).
 
----
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please read our [Contributing Guidelines](./docs/CONTRIBUTING.md) for more details.
 
 ## 🧪 License
 
 MIT — use freely, modify, share.
 
----
-
-## 🎮 Watch the Full Tutorial
+## 🎮 Watch the Tutorial
 
 👉 [Watch on YouTube](https://youtu.be/J6atjuGCDS0)
 
 ---
+
+<p align="center">
+Made with ❤️ by <a href="https://github.com/atef-ataya">Atef Ataya</a>
+</p>
