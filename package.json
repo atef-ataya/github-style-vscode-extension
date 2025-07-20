@@ -4,6 +4,10 @@
   "description": "Analyze GitHub repos and generate consistent code using your own style.",
   "version": "0.0.1",
   "publisher": "your-publisher-id",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/codestyle-stylegen"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -25,7 +29,7 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint src --ext .ts,.js",
     "tsc": "tsc -p ./",
     "test": "node src/tests/basic.test.js",
     "package": "vsce package"

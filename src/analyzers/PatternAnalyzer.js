@@ -68,10 +68,16 @@ class PatternAnalyzer {
         return commentCount;
     }
     extractFunctions(content) {
-        const functionRegex = /(?:function\s+([\w$]+)|(?:const|let|var)\s+([\w$]+)\s*=\s*(?:async\s*)?function|(?:const|let|var)\s+([\w$]+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>)\s*\{([^}]*)\}/g;
+        // Simplified regex with limited backtracking
+        const functionRegex = /(?:function\s+([\w$]{1,100})|(?:const|let|var)\s+([\w$]{1,100})\s*=\s*(?:async\s*)?function|(?:const|let|var)\s+([\w$]{1,100})\s*=\s*(?:async\s*)?\([^)]\)\s*=>)\s*\{([^}]{0,5000})\}/g;
         const functions = [];
         let match;
-        while ((match = functionRegex.exec(content)) !== null) {
+        // Set a limit on iterations to prevent infinite loops
+        let iterationCount = 0;
+        const MAX_ITERATIONS = 1000;
+        
+        while ((match = functionRegex.exec(content)) !== null && iterationCount < MAX_ITERATIONS) {
+            iterationCount++;
             const name = match[1] || match[2] || match[3];
             const body = match[4];
             const length = body.split('\n').length;
@@ -80,10 +86,16 @@ class PatternAnalyzer {
         return functions;
     }
     extractClasses(content) {
-        const classRegex = /class\s+([\w$]+)[^{]*\{([^}]*)\}/g;
+        // Simplified regex with limited backtracking
+        const classRegex = /class\s+([\w$]{1,100})[^{]{0,500}\{([^}]{0,10000})\}/g;
         const classes = [];
         let match;
-        while ((match = classRegex.exec(content)) !== null) {
+        // Set a limit on iterations to prevent infinite loops
+        let iterationCount = 0;
+        const MAX_ITERATIONS = 1000;
+        
+        while ((match = classRegex.exec(content)) !== null && iterationCount < MAX_ITERATIONS) {
+            iterationCount++;
             const name = match[1];
             const body = match[2];
             const methods = this.extractMethodNames(body);
@@ -92,10 +104,16 @@ class PatternAnalyzer {
         return classes;
     }
     extractMethodNames(classBody) {
-        const methodRegex = /(?:async\s+)?([\w$]+)\s*\([^)]*\)\s*\{/g;
+        // Simplified regex with limited backtracking
+        const methodRegex = /(?:async\s+)?([\w$]{1,100})\s*\([^)]\)\s*\{/g;
         const methods = [];
         let match;
-        while ((match = methodRegex.exec(classBody)) !== null) {
+        // Set a limit on iterations to prevent infinite loops
+        let iterationCount = 0;
+        const MAX_ITERATIONS = 1000;
+        
+        while ((match = methodRegex.exec(classBody)) !== null && iterationCount < MAX_ITERATIONS) {
+            iterationCount++;
             methods.push(match[1]);
         }
         return methods;
@@ -123,10 +141,12 @@ class PatternAnalyzer {
         let spacesCount = 0;
         let tabsCount = 0;
         for (const line of lines) {
-            if (line.startsWith('    '))
+            if (line.startsWith('    ')) {
                 spacesCount++;
-            if (line.startsWith('\t'))
+            }
+            if (line.startsWith('\t')) {
                 tabsCount++;
+            }
         }
         if (spacesCount > tabsCount) {
             return '4 spaces';
@@ -154,27 +174,37 @@ class PatternAnalyzer {
         const hasTryCatch = content.includes('try') && content.includes('catch');
         const hasThrow = content.includes('throw');
         const hasErrorFirst = content.includes('(error,') || content.includes('(err,');
-        if (hasTryCatch && hasThrow)
+        if (hasTryCatch && hasThrow) {
             return 'try-catch-throw';
-        if (hasErrorFirst)
+        }
+        if (hasErrorFirst) {
             return 'error-first-callbacks';
+        }
         return 'minimal';
     }
     detectCommentStyle(content) {
         const singleLineComments = (content.match(/\/\/.*/g) || []).length;
         const multiLineComments = (content.match(/\/\*[\s\S]*?\*\//g) || []).length;
         const jsDocComments = (content.match(/\/\*\*[\s\S]*?\*\//g) || []).length;
-        if (jsDocComments > 0)
+        if (jsDocComments > 0) {
             return 'jsdoc';
-        if (multiLineComments > singleLineComments)
+        }
+        if (multiLineComments > singleLineComments) {
             return 'multi_line';
+        }
         return 'single_line';
     }
     extractImports(content) {
         const imports = [];
-        const importRegex = /import\s+(?:{[^}]*}\s+from\s+)?['"]([@\w\/-]+)['"];?/g;
+        // Simplified regex with limited backtracking
+        const importRegex = /import\s+(?:{[^}]{0,500}}\s+from\s+)?['"]([@\w-]{1,200})['"]\.?/g;
         let match;
-        while ((match = importRegex.exec(content)) !== null) {
+        // Set a limit on iterations to prevent infinite loops
+        let iterationCount = 0;
+        const MAX_ITERATIONS = 1000;
+        
+        while ((match = importRegex.exec(content)) !== null && iterationCount < MAX_ITERATIONS) {
+            iterationCount++;
             imports.push(match[1]);
         }
         return imports;

@@ -368,7 +368,8 @@ export function getWebviewContent(
             successMsg.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
             successMsg.style.borderRadius = 'var(--border-radius)';
             // Remove after 3 seconds
-            setTimeout(() => successMsg.remove(), 3000);
+            const TIMEOUT_DURATION = 3000; // Fixed timeout duration
+            setTimeout(function() { successMsg.remove(); }, TIMEOUT_DURATION);
             document.querySelector('.result-section').appendChild(successMsg);
             break;
           case 'copySuccess':
@@ -381,7 +382,8 @@ export function getWebviewContent(
             copyMsg.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
             copyMsg.style.borderRadius = 'var(--border-radius)';
             // Remove after 3 seconds
-            setTimeout(() => copyMsg.remove(), 3000);
+            const COPY_TIMEOUT_DURATION = 3000; // Fixed timeout duration
+            setTimeout(function() { copyMsg.remove(); }, COPY_TIMEOUT_DURATION);
             document.querySelector('.result-section').appendChild(copyMsg);
             break;
           default:
