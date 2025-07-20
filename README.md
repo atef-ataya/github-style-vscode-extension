@@ -75,7 +75,6 @@ ANALYSIS_DEPTH=detailed
 4. **Run the tool manually or inside VS Code**
 
 ## 🎮 Getting Started
-
 ### 💻 Run Locally in VS Code (To Learn *Your* Style)
 
 Install the extension locally to analyze **your** GitHub repositories and generate code in **your** personal style.
