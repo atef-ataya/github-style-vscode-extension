@@ -123,7 +123,7 @@ ANALYSIS_DEPTH=detailed
 2. Press `F5` to launch the **Extension Development Host**
 3. In the new window, open the **Command Palette**
    `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
-4. Type and select: `GitStyle: Open Panel`
+4. Type and select: `CodeStyle: Open Panel`
 5. The extension's UI will appear in the side panel — ready to use!
 
 ## 🧠 How It Works

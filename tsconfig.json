@@ -12,7 +12,7 @@
   "include": [
     "./extension.ts",
     "./webviewContent.ts",
-    "./traeEngine.ts",
+    "./CodeStyleEngine.ts",
     "src/analyzers/PatternAnalyzer.ts",
     "src/generators/CodeGenerator.ts"
   ],

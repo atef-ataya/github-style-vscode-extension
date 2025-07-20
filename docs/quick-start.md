@@ -73,7 +73,7 @@ Press `F5` to start the extension in debug mode. This will open a new VS Code wi
    - Windows/Linux: `Ctrl+Shift+P`
    - macOS: `Cmd+Shift+P`
 
-2. Type and select: `GitStyle: Open Panel`
+2. Type and select: `CodeStyle: Open Panel`
 
 3. The extension's UI will appear in the side panel.
 

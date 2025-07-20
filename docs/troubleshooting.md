@@ -88,7 +88,7 @@ This guide addresses common issues you might encounter when using the GitHub Sty
 
 **Symptoms:**
 - Extension doesn't appear in VS Code
-- Command palette doesn't show GitStyle commands
+- Command palette doesn't show CodeStyle commands
 
 **Solutions:**
 

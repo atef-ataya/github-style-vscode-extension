@@ -1,6 +1,6 @@
 {
-  "name": "trae-ai-stylegen",
-  "displayName": "GitStyle AI Code Generator",
+  "name": "codestyle-stylegen",
+  "displayName": "CodeStyle Code Generator",
   "description": "Analyze GitHub repos and generate consistent code using your own style.",
   "version": "0.0.1",
   "publisher": "your-publisher-id",
@@ -11,25 +11,31 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:trae-ai.generate"
+    "onCommand:codestyle.generate"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "trae-ai.generate",
-        "title": "GitStyle AI Code Generator"
+        "command": "codestyle.generate",
+        "title": "CodeStyle Code Generator"
       }
     ]
   },
   "activationEvents": [
-    "onCommand:trae-ai.generate"
+    "onCommand:codestyle.generate"
   ],
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./"
   },
+  "dependencies": {
+    "@octokit/rest": "^19.0.13",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.1"
+  },
   "devDependencies": {
+    "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.4.0",
     "vsce": "^2.15.0"
