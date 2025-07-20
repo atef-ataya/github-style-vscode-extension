@@ -18,7 +18,7 @@ This is the actual agent featured in my [YouTube tutorial](https://youtu.be/J6at
 
 ## 🛠️ Technologies Used
 
-* 🧠 [TRAE AI](https://trae.ai/) (Builder Agent)
+* 🧠 AI-Powered Code Generation
 * 🔆 TypeScript + Node.js
 * ✨ OpenAI API
 * 🖡️ GitHub REST API
@@ -61,24 +61,13 @@ ANALYSIS_DEPTH=detailed
 
 ---
 
-## 🎮 Getting Started: Two Ways to Use
-
-You can either test the concept directly in the **TRAE AI IDE** or run the full extension **locally in VS Code**.
+## 🎮 Getting Started
 
 ---
 
-### ⚡ Option 1: Demo Inside TRAE AI (No Setup Required)
 
-This is the quickest way to see the agent’s capabilities. You can use my pre-trained agent that generates code based on my personal GitHub style.
 
-1. Go to the TRAE AI IDE
-2. Load the public **GitHub Style Agent** from the agent library
-   👉 [Link to my public TRAE AI Agent](https://github.com/atef-ataya/github-style-vscode-extension.git)
-3. Enter a prompt and watch it generate code that mimics my style
-
----
-
-### 💻 Option 2: Run Locally in VS Code (To Learn *Your* Style)
+### 💻 Run Locally in VS Code (To Learn *Your* Style)
 
 Install the extension locally to analyze **your** GitHub repositories and generate code in **your** personal style.
 
