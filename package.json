@@ -27,7 +27,7 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint . --ext .ts",
     "tsc": "tsc -p ./",
-    "test": "echo \"No tests specified\" && exit 0",
+    "test": "node src/tests/basic.test.js",
     "package": "vsce package"
   },
   "dependencies": {
