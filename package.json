@@ -6,7 +6,7 @@
   "publisher": "your-publisher-id",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/codestyle-stylegen"
+    "url": "https://github.com/atef-ataya/github-style-vscode-extension"
   },
   "engines": {
     "vscode": "^1.85.0"
