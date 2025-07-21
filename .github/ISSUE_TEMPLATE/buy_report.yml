@@ -1,6 +1,6 @@
 name: Purchase Report
 description: Report a successful purchase or licensing issue
-title: "[PURCHASE]: "
+title: '[PURCHASE]: '
 formId: purchase-report-form
 body:
   - type: markdown

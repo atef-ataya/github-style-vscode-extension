@@ -1,7 +1,10 @@
 import OpenAI from 'openai';
 
 export class CodeGenerator {
-  constructor(private openai: OpenAI, private style: any) {
+  constructor(
+    private openai: OpenAI,
+    private style: any
+  ) {
     if (!openai) {
       throw new Error('OpenAI instance is required');
     }
@@ -11,7 +14,7 @@ export class CodeGenerator {
     if (!spec) {
       throw new Error('Code specification is required');
     }
-    
+
     return `
 You are an AI developer assistant.
 

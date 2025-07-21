@@ -44,9 +44,14 @@ class PatternAnalyzer {
         try {
             const totalLines = this.styleProfile.totalLines || 1;
             // Determine the dominant style
-            const indentStyle = this.styleProfile.indentSpaces > this.styleProfile.indentTabs ? 'spaces' : 'tabs';
-            const quoteStyle = this.styleProfile.singleQuotes > this.styleProfile.doubleQuotes ? 'single' : 'double';
-            const useSemicolons = this.styleProfile.semicolons / totalLines > 0.5;
+            const indentSpaces = this.styleProfile.indentSpaces || 0;
+            const indentTabs = this.styleProfile.indentTabs || 0;
+            const singleQuotes = this.styleProfile.singleQuotes || 0;
+            const doubleQuotes = this.styleProfile.doubleQuotes || 0;
+            const semicolons = this.styleProfile.semicolons || 0;
+            const indentStyle = indentSpaces > indentTabs ? 'spaces' : 'tabs';
+            const quoteStyle = singleQuotes > doubleQuotes ? 'single' : 'double';
+            const useSemicolons = semicolons / totalLines > 0.5;
             return {
                 indentStyle,
                 quoteStyle,
@@ -62,10 +67,10 @@ class PatternAnalyzer {
                 quoteStyle: 'double', // Default to double quotes
                 useSemicolons: true, // Default to using semicolons
                 raw: this.styleProfile,
-                fileCount: this.fileCount,
-                error: 'Error calculating style profile'
+                fileCount: this.fileCount
             };
         }
     }
 }
 exports.PatternAnalyzer = PatternAnalyzer;
+//# sourceMappingURL=PatternAnalyzer.js.map

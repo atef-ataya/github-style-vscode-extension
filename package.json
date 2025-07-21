@@ -36,7 +36,7 @@
     "test": "npm run test:unit",
     "test:unit": "node src/tests/basic.test.js",
     "test:watch": "npm run test:unit -- --watch",
-    "clean": "rimraf out dist *.vsix",
+    "clean": "rimraf out dist && del /q *.vsix 2>nul || echo No .vsix files to delete",
     "prebuild": "npm run clean",
     "prepackage": "npm run build",
     "package": "vsce package",
@@ -44,7 +44,6 @@
     "dev": "npm run watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "npm run build",
     "ci": "npm run lint:check && npm run type-check && npm run test"
   },
   "dependencies": {
@@ -60,7 +59,6 @@
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-security": "^1.7.1",
-    "eslint-import-resolver-typescript": "^3.6.1",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.4.0",

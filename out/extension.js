@@ -158,3 +158,4 @@ function activate(context) {
     context.subscriptions.push(disposable);
 }
 function deactivate() { }
+//# sourceMappingURL=extension.js.map

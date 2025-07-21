@@ -20,12 +20,12 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const author = context.payload.sender.login;
-            
+
             // Skip for bot accounts
             if (author.endsWith('[bot]')) {
               return;
             }
-            
+
             // Check if this is the user's first contribution
             async function isFirstContribution() {
               // Check previous issues
@@ -49,7 +49,7 @@ jobs:
               return (issues.data.length <= 1 && userPRs.length === 0) || 
                      (issues.data.length === 0 && userPRs.length <= 1);
             }
-            
+
             // Only welcome first-time contributors
             if (await isFirstContribution()) {
               // Determine if this is an issue or PR

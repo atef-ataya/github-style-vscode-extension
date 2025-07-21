@@ -8,7 +8,7 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    
+
     // Strict Type Checking
     "strict": true,
     "noImplicitAny": true,
@@ -21,7 +21,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
-    
+
     // Module Resolution
     "moduleResolution": "node",
     "baseUrl": "./",
@@ -35,22 +35,18 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    
+
     // Emit
     "removeComments": false,
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    
+
     // Advanced
     "incremental": true,
     "tsBuildInfoFile": "./out/.tsbuildinfo"
   },
-  "include": [
-    "src/**/*",
-    "*.ts",
-    "tests/**/*"
-  ],
+  "include": ["src/**/*", "*.ts", "tests/**/*"],
   "exclude": [
     "node_modules",
     "out",

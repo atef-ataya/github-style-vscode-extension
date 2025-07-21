@@ -68,6 +68,15 @@ export interface StyleProfile {
   repositories: string[];
 }
 
+// Simple style analysis result for PatternAnalyzer
+export interface SimpleStyleProfile {
+  indentStyle: 'spaces' | 'tabs';
+  quoteStyle: 'single' | 'double';
+  useSemicolons: boolean;
+  raw: Record<string, number>;
+  fileCount: number;
+}
+
 // Code Generation Types
 export interface CodeGenerationRequest {
   prompt: string;
@@ -84,6 +93,9 @@ export interface CodeGenerationResponse {
   confidence: number;
   tokensUsed: number;
 }
+
+// Analysis Types
+export type AnalysisDepth = 'basic' | 'detailed';
 
 // Configuration Types
 export interface EnvironmentConfig {
@@ -102,19 +114,24 @@ export interface EnvironmentConfig {
 export interface ApiError {
   message: string;
   code: string;
-  statusCode?: number;
+  statusCode?: number | undefined;
   details?: unknown;
 }
 
 export interface AnalysisError extends ApiError {
-  repository?: string;
-  file?: string;
+  repository?: string | undefined;
+  file?: string | undefined;
   step: 'fetch' | 'parse' | 'analyze';
 }
 
 // VS Code Extension Types
 export interface WebviewMessage {
-  type: 'analyzeStyle' | 'generateCode' | 'saveFile' | 'copyToClipboard' | 'error';
+  type:
+    | 'analyzeStyle'
+    | 'generateCode'
+    | 'saveFile'
+    | 'copyToClipboard'
+    | 'error';
   payload?: unknown;
 }
 
@@ -149,7 +166,7 @@ export interface CopyToClipboardMessage extends WebviewMessage {
 }
 
 // Utility Types
-export type Result<T, E = ApiError> = 
+export type Result<T, E = ApiError> =
   | { success: true; data: T }
   | { success: false; error: E };
 
@@ -157,10 +174,22 @@ export type AsyncResult<T, E = ApiError> = Promise<Result<T, E>>;
 
 // Constants
 export const SUPPORTED_FILE_EXTENSIONS = [
-  '.ts', '.js', '.tsx', '.jsx',
-  '.py', '.java', '.cpp', '.c',
-  '.cs', '.php', '.rb', '.go',
-  '.rs', '.swift', '.kt', '.scala'
+  '.ts',
+  '.js',
+  '.tsx',
+  '.jsx',
+  '.py',
+  '.java',
+  '.cpp',
+  '.c',
+  '.cs',
+  '.php',
+  '.rb',
+  '.go',
+  '.rs',
+  '.swift',
+  '.kt',
+  '.scala',
 ] as const;
 
 export const DEFAULT_CONFIG: Partial<EnvironmentConfig> = {
@@ -169,5 +198,5 @@ export const DEFAULT_CONFIG: Partial<EnvironmentConfig> = {
   analysisDepth: 'detailed',
   apiTimeout: 30000,
   debug: false,
-  cacheDir: './cache'
+  cacheDir: './cache',
 } as const;

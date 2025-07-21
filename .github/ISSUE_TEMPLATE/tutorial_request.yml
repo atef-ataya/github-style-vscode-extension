@@ -1,6 +1,6 @@
 name: Tutorial Request
 description: Suggest a tutorial topic for this project
-title: "[TUTORIAL]: "
+title: '[TUTORIAL]: '
 formId: tutorial-request-form
 body:
   - type: markdown

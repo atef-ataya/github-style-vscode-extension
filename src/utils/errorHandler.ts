@@ -10,14 +10,14 @@ import { ApiError, AnalysisError, Result, AsyncResult } from '../types';
 export function createApiError(
   message: string,
   code: string,
-  statusCode?: number,
+  statusCode?: number | undefined,
   details?: unknown
 ): ApiError {
   return {
     message,
     code,
-    statusCode,
-    details,
+    ...(statusCode !== undefined && { statusCode }),
+    ...(details !== undefined && { details }),
   };
 }
 
@@ -28,19 +28,19 @@ export function createAnalysisError(
   message: string,
   code: string,
   step: 'fetch' | 'parse' | 'analyze',
-  repository?: string,
-  file?: string,
-  statusCode?: number,
+  repository?: string | undefined,
+  file?: string | undefined,
+  statusCode?: number | undefined,
   details?: unknown
 ): AnalysisError {
   return {
     message,
     code,
-    statusCode,
-    details,
-    repository,
-    file,
     step,
+    ...(statusCode !== undefined && { statusCode }),
+    ...(details !== undefined && { details }),
+    ...(repository !== undefined && { repository }),
+    ...(file !== undefined && { file }),
   };
 }
 
@@ -89,28 +89,33 @@ export async function safeExecuteAsync<T>(
 /**
  * Logs errors in a consistent format
  */
-export function logError(error: ApiError | AnalysisError, context?: string): void {
+export function logError(
+  error: ApiError | AnalysisError,
+  context?: string
+): void {
   const timestamp = new Date().toISOString();
   const contextStr = context ? ` [${context}]` : '';
-  
-  console.error(`[${timestamp}]${contextStr} Error ${error.code}: ${error.message}`);
-  
+
+  console.error(
+    `[${timestamp}]${contextStr} Error ${error.code}: ${error.message}`
+  );
+
   if ('repository' in error && error.repository) {
     console.error(`  Repository: ${error.repository}`);
   }
-  
+
   if ('file' in error && error.file) {
     console.error(`  File: ${error.file}`);
   }
-  
+
   if ('step' in error) {
     console.error(`  Step: ${error.step}`);
   }
-  
+
   if (error.statusCode) {
     console.error(`  Status Code: ${error.statusCode}`);
   }
-  
+
   if (error.details && process.env.DEBUG === 'true') {
     console.error('  Details:', error.details);
   }
@@ -119,10 +124,13 @@ export function logError(error: ApiError | AnalysisError, context?: string): voi
 /**
  * Handles GitHub API errors specifically
  */
-export function handleGitHubError(error: unknown, repository?: string): ApiError {
+export function handleGitHubError(
+  error: unknown,
+  repository?: string
+): ApiError {
   if (error && typeof error === 'object' && 'status' in error) {
     const githubError = error as { status: number; message?: string };
-    
+
     switch (githubError.status) {
       case 401:
         return createApiError(
@@ -154,7 +162,7 @@ export function handleGitHubError(error: unknown, repository?: string): ApiError
         );
     }
   }
-  
+
   return createApiError(
     error instanceof Error ? error.message : 'Unknown GitHub error',
     'GITHUB_UNKNOWN_ERROR',
@@ -169,7 +177,7 @@ export function handleGitHubError(error: unknown, repository?: string): ApiError
 export function handleOpenAIError(error: unknown): ApiError {
   if (error && typeof error === 'object' && 'status' in error) {
     const openaiError = error as { status: number; message?: string };
-    
+
     switch (openaiError.status) {
       case 401:
         return createApiError(
@@ -201,7 +209,7 @@ export function handleOpenAIError(error: unknown): ApiError {
         );
     }
   }
-  
+
   return createApiError(
     error instanceof Error ? error.message : 'Unknown OpenAI error',
     'OPENAI_UNKNOWN_ERROR',
@@ -215,27 +223,33 @@ export function handleOpenAIError(error: unknown): ApiError {
  */
 export function validateEnvironment(): ApiError[] {
   const errors: ApiError[] = [];
-  
+
   if (!process.env.GITHUB_TOKEN) {
-    errors.push(createApiError(
-      'GITHUB_TOKEN environment variable is required',
-      'MISSING_GITHUB_TOKEN'
-    ));
+    errors.push(
+      createApiError(
+        'GITHUB_TOKEN environment variable is required',
+        'MISSING_GITHUB_TOKEN'
+      )
+    );
   }
-  
+
   if (!process.env.GITHUB_USERNAME) {
-    errors.push(createApiError(
-      'GITHUB_USERNAME environment variable is required',
-      'MISSING_GITHUB_USERNAME'
-    ));
+    errors.push(
+      createApiError(
+        'GITHUB_USERNAME environment variable is required',
+        'MISSING_GITHUB_USERNAME'
+      )
+    );
   }
-  
+
   if (!process.env.OPENAI_API_KEY) {
-    errors.push(createApiError(
-      'OPENAI_API_KEY environment variable is required',
-      'MISSING_OPENAI_API_KEY'
-    ));
+    errors.push(
+      createApiError(
+        'OPENAI_API_KEY environment variable is required',
+        'MISSING_OPENAI_API_KEY'
+      )
+    );
   }
-  
+
   return errors;
 }

@@ -392,3 +392,4 @@ function getWebviewContent(webview, extensionUri) {
   </html>
 `;
 }
+//# sourceMappingURL=webviewContent.js.map

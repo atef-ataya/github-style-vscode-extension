@@ -1,10 +1,13 @@
-import { PatternAnalyzer } from './src/analyzers/PatternAnalyzer';
-import { CodeGenerator } from './src/generators/CodeGenerator';
-import { Octokit } from '@octokit/rest';
-import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { Octokit } from '@octokit/rest';
+import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
+
+import { PatternAnalyzer } from './src/analyzers/PatternAnalyzer';
+import { CodeGenerator } from './src/generators/CodeGenerator';
+import { AnalysisDepth } from './src/types';
 
 // Load environment variables
 dotenv.config();
@@ -13,7 +16,7 @@ export async function analyzeMultipleReposPatterns(
   token: string,
   username: string,
   maxRepos = 10,
-  analysisDepth = 'detailed'
+  analysisDepth: AnalysisDepth = 'detailed'
 ) {
   if (!token) {
     throw new Error('GitHub token is required');
@@ -27,7 +30,7 @@ export async function analyzeMultipleReposPatterns(
     const octokit = new Octokit({ auth: token });
     console.log(`Analyzing repositories for user: ${username}`);
     console.log(`Maximum repositories to analyze: ${maxRepos}`);
-    
+
     const repos = await octokit.repos.listForUser({
       username,
       per_page: maxRepos,
@@ -51,13 +54,28 @@ export async function analyzeMultipleReposPatterns(
         });
 
         const files = contents.data;
-        const codeFiles = Array.isArray(files) ? files.filter(file => {
-          const ext = file.name.split('.').pop()?.toLowerCase();
-          return file.type === 'file' && ['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'c', 'cpp', 'cs'].includes(ext || '');
-        }) : [];
-        
+        const codeFiles = Array.isArray(files)
+          ? files.filter(file => {
+              const ext = file.name.split('.').pop()?.toLowerCase();
+              return (
+                file.type === 'file' &&
+                [
+                  'js',
+                  'ts',
+                  'jsx',
+                  'tsx',
+                  'py',
+                  'java',
+                  'c',
+                  'cpp',
+                  'cs',
+                ].includes(ext || '')
+              );
+            })
+          : [];
+
         console.log(`Found ${codeFiles.length} code files in ${repo.name}`);
-        
+
         for (const file of codeFiles) {
           try {
             const fileRes = await octokit.repos.getContent({
@@ -106,7 +124,7 @@ export async function generateCodeSample(
   try {
     console.log('Initializing OpenAI client');
     const openai = new OpenAI({ apiKey: openaiApiKey });
-    
+
     // Use default style profile if none provided
     if (!styleProfile || Object.keys(styleProfile).length === 0) {
       console.warn('No style profile provided, using defaults');
@@ -114,7 +132,7 @@ export async function generateCodeSample(
         indentStyle: 'spaces',
         quoteStyle: 'double',
         useSemicolons: true,
-        raw: {}
+        raw: {},
       };
     }
 
