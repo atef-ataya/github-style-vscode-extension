@@ -28,21 +28,21 @@ export function getConfig(): EnvironmentConfig {
     githubToken: process.env.GITHUB_TOKEN as string,
     githubUsername: process.env.GITHUB_USERNAME as string,
     openaiApiKey: process.env.OPENAI_API_KEY as string,
-    openaiModel: process.env.OPENAI_MODEL ?? DEFAULT_CONFIG.openaiModel,
+    openaiModel: process.env.OPENAI_MODEL ?? DEFAULT_CONFIG.openaiModel ?? 'gpt-3.5-turbo',
     maxReposToAnalyze: parseInt(
       process.env.MAX_REPOS_TO_ANALYZE ??
-        String(DEFAULT_CONFIG.maxReposToAnalyze),
+        String(DEFAULT_CONFIG.maxReposToAnalyze ?? 20),
       10
     ),
     analysisDepth:
       (process.env.ANALYSIS_DEPTH as 'basic' | 'detailed') ??
-      DEFAULT_CONFIG.analysisDepth,
+      DEFAULT_CONFIG.analysisDepth ?? 'detailed',
     apiTimeout: parseInt(
-      process.env.API_TIMEOUT ?? String(DEFAULT_CONFIG.apiTimeout),
+      process.env.API_TIMEOUT ?? String(DEFAULT_CONFIG.apiTimeout ?? 30000),
       10
     ),
-    debug: process.env.DEBUG === 'true' || DEFAULT_CONFIG.debug,
-    cacheDir: process.env.CACHE_DIR ?? DEFAULT_CONFIG.cacheDir,
+    debug: process.env.DEBUG === 'true' || DEFAULT_CONFIG.debug || false,
+    cacheDir: process.env.CACHE_DIR ?? DEFAULT_CONFIG.cacheDir ?? './cache',
   };
 }
 

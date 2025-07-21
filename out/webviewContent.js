@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWebviewContent = getWebviewContent;
-function getWebviewContent(webview, extensionUri) {
+function getWebviewContent(_webview, _extensionUri) {
     return `
   <!DOCTYPE html>
   <html lang="en">
@@ -283,7 +283,7 @@ function getWebviewContent(webview, extensionUri) {
         const openaiKey = document.getElementById('openaiKey').value.trim();
         const username = document.getElementById('username').value.trim();
         const spec = document.getElementById('spec').value.trim();
-        const maxRepos = parseInt(document.getElementById('maxRepos').value) || 10;
+        const maxRepos = parseInt(document.getElementById('maxRepos').value) ?? 10;
         
         // Validation checks
         if (!token) {
@@ -366,7 +366,7 @@ function getWebviewContent(webview, extensionUri) {
             successMsg.style.borderRadius = 'var(--border-radius)';
             // Remove after 3 seconds
             const TIMEOUT_DURATION = 3000; // Fixed timeout duration
-            setTimeout(function() { successMsg.remove(); }, TIMEOUT_DURATION);
+            setTimeout(() => { successMsg.remove(); }, TIMEOUT_DURATION);
             document.querySelector('.result-section').appendChild(successMsg);
             break;
           case 'copySuccess':
@@ -380,7 +380,7 @@ function getWebviewContent(webview, extensionUri) {
             copyMsg.style.borderRadius = 'var(--border-radius)';
             // Remove after 3 seconds
             const COPY_TIMEOUT_DURATION = 3000; // Fixed timeout duration
-            setTimeout(function() { copyMsg.remove(); }, COPY_TIMEOUT_DURATION);
+            setTimeout(() => { copyMsg.remove(); }, COPY_TIMEOUT_DURATION);
             document.querySelector('.result-section').appendChild(copyMsg);
             break;
           default:

@@ -7,7 +7,7 @@ import * as dotenv from 'dotenv';
 
 import { PatternAnalyzer } from './src/analyzers/PatternAnalyzer';
 import { CodeGenerator } from './src/generators/CodeGenerator';
-import { AnalysisDepth } from './src/types';
+import { AnalysisDepth, SimpleStyleProfile } from './src/types';
 
 // Load environment variables
 dotenv.config();
@@ -17,7 +17,7 @@ export async function analyzeMultipleReposPatterns(
   username: string,
   maxRepos = 10,
   analysisDepth: AnalysisDepth = 'detailed'
-) {
+): Promise<SimpleStyleProfile> {
   if (!token) {
     throw new Error('GitHub token is required');
   }
@@ -38,7 +38,13 @@ export async function analyzeMultipleReposPatterns(
 
     if (repos.data.length === 0) {
       console.warn(`No repositories found for user: ${username}`);
-      return {};
+      return {
+        indentStyle: 'spaces',
+        quoteStyle: 'double',
+        useSemicolons: true,
+        raw: {},
+        fileCount: 0,
+      };
     }
 
     console.log(`Found ${repos.data.length} repositories to analyze`);
@@ -84,7 +90,7 @@ export async function analyzeMultipleReposPatterns(
               path: file.path,
             });
             const content = Buffer.from(
-              (fileRes.data as any).content,
+              (fileRes.data as { content: string }).content,
               'base64'
             ).toString('utf8');
             analyzer.feed(content, analysisDepth);
@@ -110,7 +116,7 @@ export async function analyzeMultipleReposPatterns(
 
 export async function generateCodeSample(
   openaiApiKey: string,
-  styleProfile: Record<string, any>,
+  styleProfile: SimpleStyleProfile,
   codeSpec: string
 ): Promise<string> {
   if (!openaiApiKey) {
@@ -133,6 +139,7 @@ export async function generateCodeSample(
         quoteStyle: 'double',
         useSemicolons: true,
         raw: {},
+        fileCount: 0,
       };
     }
 
