@@ -20,8 +20,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
-
     // Module Resolution
     "moduleResolution": "node",
     "baseUrl": "./",
@@ -46,12 +44,22 @@
     "incremental": true,
     "tsBuildInfoFile": "./out/.tsbuildinfo"
   },
-  "include": ["src/**/*", "*.ts", "tests/**/*"],
+  "include": [
+    "src/**/*", 
+    "*.ts", 
+    "extension.ts",
+    "webviewContent.ts",
+    "CodeStyleEngine.ts"
+  ],
   "exclude": [
     "node_modules",
     "out",
     "vscode-extension",
     "**/*.test.js",
-    "coverage"
-  ]
+    "coverage",
+    "dist"
+  ],
+  "ts-node": {
+    "esm": true
+  }
 }

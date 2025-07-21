@@ -30,9 +30,10 @@
     "build": "tsc -p ./",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "tsc": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.js --fix",
     "lint:check": "eslint . --ext .ts,.js",
-    "type-check": "tsc --noEmit",
     "test": "npm run test:unit",
     "test:unit": "node src/tests/basic.test.js",
     "test:watch": "npm run test:unit -- --watch",
@@ -54,14 +55,14 @@
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-security": "^1.7.1",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.5",
-    "typescript": "^5.4.0",
+    "typescript": "^5.3.3",
     "vsce": "^2.15.0"
   }
 }

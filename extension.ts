@@ -9,12 +9,47 @@ import {
   generateCodeSample,
 } from './CodeStyleEngine';
 
-export function activate(context: vscode.ExtensionContext) {
-  console.log('CodeStyle extension is now active!');
+// Type definitions for webview messages
+interface BaseMessage {
+  command: string;
+}
 
+interface AnalyzeAndGenerateMessage extends BaseMessage {
+  command: 'analyzeAndGenerate';
+  token: string;
+  openaiKey: string;
+  username: string;
+  spec: string;
+  maxRepos?: number;
+  analysisDepth?: 'basic' | 'detailed';
+}
+
+interface SaveToFileMessage extends BaseMessage {
+  command: 'saveToFile';
+  code: string;
+}
+
+interface CopyToClipboardMessage extends BaseMessage {
+  command: 'copyToClipboard';
+  code: string;
+}
+
+function isAnalyzeAndGenerateMessage(message: BaseMessage): message is AnalyzeAndGenerateMessage {
+  return message.command === 'analyzeAndGenerate';
+}
+
+function isSaveToFileMessage(message: BaseMessage): message is SaveToFileMessage {
+  return message.command === 'saveToFile';
+}
+
+function isCopyToClipboardMessage(message: BaseMessage): message is CopyToClipboardMessage {
+  return message.command === 'copyToClipboard';
+}
+
+export function activate(context: vscode.ExtensionContext): void {
   const disposable = vscode.commands.registerCommand(
     'codestyle.generate',
-    async () => {
+    async (): Promise<void> => {
       try {
         const panel = vscode.window.createWebviewPanel(
           'codeStylePanel',
@@ -34,161 +69,23 @@ export function activate(context: vscode.ExtensionContext) {
         // Handle panel disposal
         panel.onDidDispose(
           () => {
-            console.log('CodeStyle panel disposed');
+            // Panel disposed - cleanup if needed
           },
           null,
           context.subscriptions
         );
 
         panel.webview.onDidReceiveMessage(
-          async message => {
-            switch (message.command) {
-              case 'analyzeAndGenerate':
-                try {
-                  if (
-                    !message.token ||
-                    !message.openaiKey ||
-                    !message.username ||
-                    !message.spec
-                  ) {
-                    const errorMsg =
-                      'Missing required parameters. Please provide all required fields.';
-                    vscode.window.showErrorMessage(
-                      `CodeStyle error: ${errorMsg}`
-                    );
-                    panel.webview.postMessage({
-                      command: 'showError',
-                      error: errorMsg,
-                    });
-                    return;
-                  }
-
-                  vscode.window.showInformationMessage(
-                    '🔍 Analyzing your GitHub style and generating code...'
-                  );
-
-                  const {
-                    token,
-                    openaiKey,
-                    username,
-                    spec,
-                    maxRepos = 10,
-                    analysisDepth = 'detailed',
-                  } = message;
-
-                  // Fetch style patterns across multiple public repositories for the user
-                  const patterns = await analyzeMultipleReposPatterns(
-                    token,
-                    username,
-                    maxRepos,
-                    analysisDepth
-                  );
-
-                  // Generate final code using OpenAI + user style
-                  const generatedCode = await generateCodeSample(
-                    openaiKey,
-                    patterns,
-                    spec
-                  );
-
-                  // Send result back to webview
-                  void panel.webview.postMessage({
-                    command: 'showResult',
-                    result: generatedCode,
-                  });
-                } catch (err: any) {
-                  void vscode.window.showErrorMessage(
-                    `CodeStyle error: ${err.message || err}`
-                  );
-
-                  // Also send error to the webview panel
-                  void panel.webview.postMessage({
-                    command: 'showError',
-                    error: err.message || String(err),
-                  });
-                }
-                break;
-
-              case 'saveToFile':
-                try {
-                  if (!message.code) {
-                    throw new Error('No code to save');
-                  }
-
-                  // Show save dialog
-                  const uri = await vscode.window.showSaveDialog({
-                    filters: {
-                      JavaScript: ['js'],
-                      TypeScript: ['ts'],
-                      Python: ['py'],
-                      Java: ['java'],
-                      'C#': ['cs'],
-                      'All Files': ['*'],
-                    },
-                  });
-
-                  if (uri) {
-                    // Write to file
-                    await vscode.workspace.fs.writeFile(
-                      uri,
-                      Buffer.from(message.code, 'utf8')
-                    );
-
-                    // Show success message
-                    void vscode.window.showInformationMessage(
-                      'Code saved successfully!'
-                    );
-                    void panel.webview.postMessage({
-                      command: 'saveSuccess',
-                      message: 'Code saved successfully!',
-                    });
-                  }
-                } catch (err: any) {
-                  const errorMessage =
-                    err instanceof Error ? err.message : String(err);
-                  void vscode.window.showErrorMessage(
-                    `Error saving file: ${errorMessage}`
-                  );
-                  void panel.webview.postMessage({
-                    command: 'showError',
-                    error: errorMessage,
-                  });
-                }
-                break;
-
-              case 'copyToClipboard':
-                try {
-                  if (!message.code) {
-                    throw new Error('No code to copy');
-                  }
-
-                  // Copy to clipboard using vscode.env.clipboard
-                  await vscode.env.clipboard.writeText(message.code);
-
-                  // Show success message
-                  void vscode.window.showInformationMessage(
-                    'Code copied to clipboard!'
-                  );
-                  void panel.webview.postMessage({
-                    command: 'copySuccess',
-                  });
-                } catch (err: any) {
-                  const errorMessage =
-                    err instanceof Error ? err.message : String(err);
-                  void vscode.window.showErrorMessage(
-                    `Error copying to clipboard: ${errorMessage}`
-                  );
-                  void panel.webview.postMessage({
-                    command: 'showError',
-                    error: errorMessage,
-                  });
-                }
-                break;
-
-              default:
-                // Ignore unhandled commands
-                break;
-            }
+          (message: BaseMessage): void => {
+            void (async (): Promise<void> => {
+              if (isAnalyzeAndGenerateMessage(message)) {
+                await handleAnalyzeAndGenerate(message, panel);
+              } else if (isSaveToFileMessage(message)) {
+                await handleSaveToFile(message, panel);
+              } else if (isCopyToClipboardMessage(message)) {
+                await handleCopyToClipboard(message, panel);
+              }
+            })();
           },
           undefined,
           context.subscriptions
@@ -204,4 +101,138 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 }
 
-export function deactivate(): void {}
+async function handleAnalyzeAndGenerate(
+  message: AnalyzeAndGenerateMessage,
+  panel: vscode.WebviewPanel
+): Promise<void> {
+  try {
+    if (!message.token || !message.openaiKey || !message.username || !message.spec) {
+      const errorMsg = 'Missing required parameters. Please provide all required fields.';
+      void vscode.window.showErrorMessage(`CodeStyle error: ${errorMsg}`);
+      void panel.webview.postMessage({
+        command: 'showError',
+        error: errorMsg,
+      });
+      return;
+    }
+
+    void vscode.window.showInformationMessage(
+      '🔍 Analyzing your GitHub style and generating code...'
+    );
+
+    const {
+      token,
+      openaiKey,
+      username,
+      spec,
+      maxRepos = 10,
+      analysisDepth = 'detailed',
+    } = message;
+
+    // Fetch style patterns across multiple public repositories for the user
+    const patterns = await analyzeMultipleReposPatterns(
+      token,
+      username,
+      maxRepos,
+      analysisDepth
+    );
+
+    // Generate final code using OpenAI + user style
+    const generatedCode = await generateCodeSample(
+      openaiKey,
+      patterns,
+      spec
+    );
+
+    // Send result back to webview
+    void panel.webview.postMessage({
+      command: 'showResult',
+      result: generatedCode,
+    });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    void vscode.window.showErrorMessage(`CodeStyle error: ${errorMessage}`);
+
+    // Also send error to the webview panel
+    void panel.webview.postMessage({
+      command: 'showError',
+      error: errorMessage,
+    });
+  }
+}
+
+async function handleSaveToFile(
+  message: SaveToFileMessage,
+  panel: vscode.WebviewPanel
+): Promise<void> {
+  try {
+    if (!message.code) {
+      throw new Error('No code to save');
+    }
+
+    // Show save dialog
+    const uri = await vscode.window.showSaveDialog({
+      filters: {
+        JavaScript: ['js'],
+        TypeScript: ['ts'],
+        Python: ['py'],
+        Java: ['java'],
+        'C#': ['cs'],
+        'All Files': ['*'],
+      },
+    });
+
+    if (uri) {
+      // Write to file
+      await vscode.workspace.fs.writeFile(
+        uri,
+        Buffer.from(message.code, 'utf8')
+      );
+
+      // Show success message
+      void vscode.window.showInformationMessage('Code saved successfully!');
+      void panel.webview.postMessage({
+        command: 'saveSuccess',
+        message: 'Code saved successfully!',
+      });
+    }
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    void vscode.window.showErrorMessage(`Error saving file: ${errorMessage}`);
+    void panel.webview.postMessage({
+      command: 'showError',
+      error: errorMessage,
+    });
+  }
+}
+
+async function handleCopyToClipboard(
+  message: CopyToClipboardMessage,
+  panel: vscode.WebviewPanel
+): Promise<void> {
+  try {
+    if (!message.code) {
+      throw new Error('No code to copy');
+    }
+
+    // Copy to clipboard using vscode.env.clipboard
+    await vscode.env.clipboard.writeText(message.code);
+
+    // Show success message
+    void vscode.window.showInformationMessage('Code copied to clipboard!');
+    void panel.webview.postMessage({
+      command: 'copySuccess',
+    });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    void vscode.window.showErrorMessage(`Error copying to clipboard: ${errorMessage}`);
+    void panel.webview.postMessage({
+      command: 'showError',
+      error: errorMessage,
+    });
+  }
+}
+
+export function deactivate(): void {
+  // Cleanup if needed
+}

@@ -6,50 +6,39 @@ class PatternAnalyzer {
     fileCount = 0;
     feed(content, _analysisDepth = 'detailed') {
         if (!content) {
-            // Skip empty content
             return;
         }
         try {
             const lines = content.split('\n');
-            // Example style detection logic
             const indentSpaces = lines.filter(line => line.startsWith('    ')).length;
             const indentTabs = lines.filter(line => line.startsWith('\t')).length;
             const semicolons = lines.filter(line => line.trim().endsWith(';')).length;
             const singleQuotes = lines.filter(line => line.includes("'")).length;
             const doubleQuotes = lines.filter(line => line.includes('"')).length;
-            // Update the style profile by adding to existing values
-            this.styleProfile.indentSpaces =
-                (this.styleProfile.indentSpaces ?? 0) + indentSpaces;
-            this.styleProfile.indentTabs =
-                (this.styleProfile.indentTabs ?? 0) + indentTabs;
-            this.styleProfile.semicolons =
-                (this.styleProfile.semicolons ?? 0) + semicolons;
-            this.styleProfile.singleQuotes =
-                (this.styleProfile.singleQuotes ?? 0) + singleQuotes;
-            this.styleProfile.doubleQuotes =
-                (this.styleProfile.doubleQuotes ?? 0) + doubleQuotes;
-            this.styleProfile.totalLines =
-                (this.styleProfile.totalLines ?? 0) + lines.length;
+            this.styleProfile.indentSpaces = (this.styleProfile.indentSpaces ?? 0) + indentSpaces;
+            this.styleProfile.indentTabs = (this.styleProfile.indentTabs ?? 0) + indentTabs;
+            this.styleProfile.semicolons = (this.styleProfile.semicolons ?? 0) + semicolons;
+            this.styleProfile.singleQuotes = (this.styleProfile.singleQuotes ?? 0) + singleQuotes;
+            this.styleProfile.doubleQuotes = (this.styleProfile.doubleQuotes ?? 0) + doubleQuotes;
+            this.styleProfile.totalLines = (this.styleProfile.totalLines ?? 0) + lines.length;
             this.fileCount++;
         }
         catch (error) {
-            // Handle error silently to continue analysis
+            // Handle error silently
         }
     }
     getStyle() {
         if (this.fileCount === 0) {
-            // Return default style when no files analyzed
             return {
-                indentStyle: 'spaces', // Default to spaces
-                quoteStyle: 'double', // Default to double quotes
-                useSemicolons: true, // Default to using semicolons
+                indentStyle: 'spaces',
+                quoteStyle: 'double',
+                useSemicolons: true,
                 raw: {},
                 fileCount: 0
             };
         }
         try {
             const totalLines = this.styleProfile.totalLines ?? 1;
-            // Determine the dominant style
             const indentSpaces = this.styleProfile.indentSpaces ?? 0;
             const indentTabs = this.styleProfile.indentTabs ?? 0;
             const singleQuotes = this.styleProfile.singleQuotes ?? 0;
@@ -67,11 +56,10 @@ class PatternAnalyzer {
             };
         }
         catch (error) {
-            // Return default style on error
             return {
-                indentStyle: 'spaces', // Default to spaces
-                quoteStyle: 'double', // Default to double quotes
-                useSemicolons: true, // Default to using semicolons
+                indentStyle: 'spaces',
+                quoteStyle: 'double',
+                useSemicolons: true,
                 raw: this.styleProfile,
                 fileCount: this.fileCount
             };

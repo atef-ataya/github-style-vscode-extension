@@ -1,6 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
-
 import { Octokit } from '@octokit/rest';
 import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
@@ -11,6 +8,25 @@ import { AnalysisDepth, SimpleStyleProfile } from './src/types';
 
 // Load environment variables
 dotenv.config();
+
+// Simple logger for development
+const logger = {
+  info: (message: string) => {
+    if (process.env.DEBUG === 'true') {
+      console.log(`[INFO] ${message}`);
+    }
+  },
+  warn: (message: string) => {
+    if (process.env.DEBUG === 'true') {
+      console.warn(`[WARN] ${message}`);
+    }
+  },
+  error: (message: string, error?: unknown) => {
+    if (process.env.DEBUG === 'true') {
+      console.error(`[ERROR] ${message}`, error);
+    }
+  },
+};
 
 export async function analyzeMultipleReposPatterns(
   token: string,
@@ -28,8 +44,7 @@ export async function analyzeMultipleReposPatterns(
 
   try {
     const octokit = new Octokit({ auth: token });
-    console.log(`Analyzing repositories for user: ${username}`);
-    console.log(`Maximum repositories to analyze: ${maxRepos}`);
+    logger.info(`Analyzing repositories for user: ${username}`);
 
     const repos = await octokit.repos.listForUser({
       username,
@@ -37,7 +52,7 @@ export async function analyzeMultipleReposPatterns(
     });
 
     if (repos.data.length === 0) {
-      console.warn(`No repositories found for user: ${username}`);
+      logger.warn(`No repositories found for user: ${username}`);
       return {
         indentStyle: 'spaces',
         quoteStyle: 'double',
@@ -47,11 +62,13 @@ export async function analyzeMultipleReposPatterns(
       };
     }
 
-    console.log(`Found ${repos.data.length} repositories to analyze`);
+    logger.info(`Found ${repos.data.length} repositories to analyze`);
     const analyzer = new PatternAnalyzer();
 
     for (const repo of repos.data) {
-      console.log(`Analyzing repository: ${repo.name}`);
+      if (!repo) continue;
+      
+      logger.info(`Analyzing repository: ${repo.name}`);
       try {
         const contents = await octokit.repos.getContent({
           owner: username,
@@ -59,57 +76,47 @@ export async function analyzeMultipleReposPatterns(
           path: '',
         });
 
-        const files = contents.data;
-        const codeFiles = Array.isArray(files)
-          ? files.filter(file => {
-              const ext = file.name.split('.').pop()?.toLowerCase();
-              return (
-                file.type === 'file' &&
-                [
-                  'js',
-                  'ts',
-                  'jsx',
-                  'tsx',
-                  'py',
-                  'java',
-                  'c',
-                  'cpp',
-                  'cs',
-                ].includes(ext || '')
-              );
-            })
-          : [];
+        const files = Array.isArray(contents.data) ? contents.data : [];
+        const codeFiles = files.filter(file => {
+          if (!file || file.type !== 'file') return false;
+          const ext = file.name.split('.').pop()?.toLowerCase();
+          return ext && [
+            'js', 'ts', 'jsx', 'tsx', 'py', 'java', 'c', 'cpp', 'cs',
+          ].includes(ext);
+        });
 
-        console.log(`Found ${codeFiles.length} code files in ${repo.name}`);
+        logger.info(`Found ${codeFiles.length} code files in ${repo.name}`);
 
-        for (const file of codeFiles) {
+        for (const file of codeFiles.slice(0, 10)) { // Limit to 10 files per repo
+          if (!file) continue;
+          
           try {
             const fileRes = await octokit.repos.getContent({
               owner: username,
               repo: repo.name,
               path: file.path,
             });
-            const content = Buffer.from(
-              (fileRes.data as { content: string }).content,
-              'base64'
-            ).toString('utf8');
-            analyzer.feed(content, analysisDepth);
+            
+            if ('content' in fileRes.data && fileRes.data.content) {
+              const content = Buffer.from(fileRes.data.content, 'base64').toString('utf8');
+              analyzer.feed(content, analysisDepth);
+            }
           } catch (fileError) {
-            console.error(`Error analyzing file ${file.path}:`, fileError);
-            // Continue with next file
+            logger.error(`Error analyzing file ${file.path}:`, fileError);
+            continue;
           }
         }
       } catch (repoError) {
-        console.error(`Error analyzing repository ${repo.name}:`, repoError);
-        // Continue with next repository
+        logger.error(`Error analyzing repository ${repo.name}:`, repoError);
+        continue;
       }
     }
 
     const styleProfile = analyzer.getStyle();
-    console.log('Analysis complete. Style profile generated.');
+    logger.info('Analysis complete. Style profile generated.');
     return styleProfile;
   } catch (error) {
-    console.error('Error in repository analysis:', error);
+    logger.error('Error in repository analysis:', error);
     throw error;
   }
 }
@@ -128,12 +135,11 @@ export async function generateCodeSample(
   }
 
   try {
-    console.log('Initializing OpenAI client');
+    logger.info('Initializing OpenAI client');
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
-    // Use default style profile if none provided
     if (!styleProfile || Object.keys(styleProfile).length === 0) {
-      console.warn('No style profile provided, using defaults');
+      logger.warn('No style profile provided, using defaults');
       styleProfile = {
         indentStyle: 'spaces',
         quoteStyle: 'double',
@@ -143,24 +149,24 @@ export async function generateCodeSample(
       };
     }
 
-    console.log('Initializing code generator');
+    logger.info('Initializing code generator');
     const generator = new CodeGenerator(openai, styleProfile);
 
-    console.log('Generating code sample based on specification');
+    logger.info('Generating code sample based on specification');
     const generatedCode = await generator.generateCode({
       spec: codeSpec,
       style: styleProfile,
     });
 
     if (!generatedCode || generatedCode === '// No code generated') {
-      console.warn('Failed to generate code sample');
+      logger.warn('Failed to generate code sample');
     } else {
-      console.log('Code sample generated successfully');
+      logger.info('Code sample generated successfully');
     }
 
     return generatedCode;
   } catch (error) {
-    console.error('Error generating code sample:', error);
+    logger.error('Error generating code sample:', error);
     throw error;
   }
 }

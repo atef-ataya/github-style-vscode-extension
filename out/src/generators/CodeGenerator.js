@@ -15,19 +15,18 @@ class CodeGenerator {
         if (!spec) {
             throw new Error('Code specification is required');
         }
-        return `
-You are an AI developer assistant.
+        return `You are an AI developer assistant.
 
 Generate code based on the following user specification:
 
-🧾 SPEC:
-${spec}
+SPEC: ${spec}
 
-🎨 STYLE PROFILE:
-${JSON.stringify(style, null, 2)}
+STYLE PREFERENCES:
+- Indentation: ${style.indentStyle}
+- Quotes: ${style.quoteStyle} quotes
+- Semicolons: ${style.useSemicolons ? 'use semicolons' : 'no semicolons'}
 
-Make sure the code matches the user's detected style preferences (indentation, quotes, etc.). Only return valid code.
-`;
+Make sure the code matches the user's style preferences. Only return valid code.`;
     }
     async generateCode(input) {
         try {
@@ -39,13 +38,11 @@ Make sure the code matches the user's detected style preferences (indentation, q
             });
             const generatedCode = completion.choices?.[0]?.message?.content?.trim();
             if (!generatedCode) {
-                // No content was returned from OpenAI
                 return '// No code generated';
             }
             return generatedCode;
         }
         catch (error) {
-            // Handle error during code generation
             return `// Error generating code: ${error instanceof Error ? error.message : 'Unknown error'}`;
         }
     }
