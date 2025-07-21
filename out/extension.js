@@ -57,7 +57,10 @@ function activate(context) {
                 switch (message.command) {
                     case 'analyzeAndGenerate':
                         try {
-                            if (!message.token || !message.openaiKey || !message.username || !message.spec) {
+                            if (!message.token ||
+                                !message.openaiKey ||
+                                !message.username ||
+                                !message.spec) {
                                 const errorMsg = 'Missing required parameters. Please provide all required fields.';
                                 vscode.window.showErrorMessage(`CodeStyle error: ${errorMsg}`);
                                 panel.webview.postMessage({
@@ -95,13 +98,13 @@ function activate(context) {
                             // Show save dialog
                             const uri = await vscode.window.showSaveDialog({
                                 filters: {
-                                    'JavaScript': ['js'],
-                                    'TypeScript': ['ts'],
-                                    'Python': ['py'],
-                                    'Java': ['java'],
+                                    JavaScript: ['js'],
+                                    TypeScript: ['ts'],
+                                    Python: ['py'],
+                                    Java: ['java'],
                                     'C#': ['cs'],
-                                    'All Files': ['*']
-                                }
+                                    'All Files': ['*'],
+                                },
                             });
                             if (uri) {
                                 // Write to file
@@ -110,7 +113,7 @@ function activate(context) {
                                 vscode.window.showInformationMessage('Code saved successfully!');
                                 panel.webview.postMessage({
                                     command: 'saveSuccess',
-                                    message: 'Code saved successfully!'
+                                    message: 'Code saved successfully!',
                                 });
                             }
                         }
@@ -133,7 +136,7 @@ function activate(context) {
                             // Show success message
                             vscode.window.showInformationMessage('Code copied to clipboard!');
                             panel.webview.postMessage({
-                                command: 'copySuccess'
+                                command: 'copySuccess',
                             });
                         }
                         catch (err) {
