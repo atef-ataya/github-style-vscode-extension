@@ -2,19 +2,60 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
+    "lib": ["ES2022"],
     "outDir": "./out",
     "rootDir": "./",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    
+    // Strict Type Checking
     "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
+    
+    // Module Resolution
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/analyzers/*": ["src/analyzers/*"],
+      "@/generators/*": ["src/generators/*"],
+      "@/types/*": ["src/types/*"],
+      "@/utils/*": ["src/utils/*"]
+    },
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    
+    // Emit
+    "removeComments": false,
+    "preserveConstEnums": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    
+    // Advanced
+    "incremental": true,
+    "tsBuildInfoFile": "./out/.tsbuildinfo"
   },
   "include": [
-    "./extension.ts",
-    "./webviewContent.ts",
-    "./CodeStyleEngine.ts",
-    "src/analyzers/PatternAnalyzer.ts",
-    "src/generators/CodeGenerator.ts"
+    "src/**/*",
+    "*.ts",
+    "tests/**/*"
   ],
-  "exclude": ["./out"]
+  "exclude": [
+    "node_modules",
+    "out",
+    "vscode-extension",
+    "**/*.test.js",
+    "coverage"
+  ]
 }

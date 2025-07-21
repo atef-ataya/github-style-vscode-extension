@@ -1,0 +1,41 @@
+# Build outputs
+out/
+dist/
+build/
+*.vsix
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.d.ts
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+
+# Cache
+.cache/
+.eslintcache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Documentation
+CHANGELOG.md
+LICENSE
+
+# Markdown files (optional - remove if you want to format markdown)
+*.md

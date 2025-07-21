@@ -8,7 +8,7 @@
 
 A full-stack tool that scans your GitHub repositories, learns your personal coding style, and generates new code in your voice.
 
-This is the actual agent featured in my [YouTube tutorial](https://youtu.be/J6atjuGCDS0) — complete with a backend analyzer and VS Code extension.
+This is a powerful GitHub Style Agent that analyzes your coding patterns and generates code in your personal style — complete with a backend analyzer and VS Code extension.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/atef-ataya/github-style-vscode-extension/main/assets/github-style-agent-banner.png" alt="GitHub Style Agent Banner" width="800">
@@ -151,9 +151,9 @@ Please read our [Contributing Guidelines](./docs/CONTRIBUTING.md) for more detai
 
 MIT — use freely, modify, share.
 
-## 🎮 Watch the Tutorial
+## 🎮 Tutorial
 
-👉 [Watch on YouTube](https://youtu.be/J6atjuGCDS0)
+📺 Tutorial video coming soon! Stay tuned for a comprehensive walkthrough.
 
 ---
 
