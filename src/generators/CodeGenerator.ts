@@ -1,16 +1,18 @@
 import OpenAI from 'openai';
 
+import { SimpleStyleProfile } from '../types';
+
 export class CodeGenerator {
   constructor(
     private openai: OpenAI,
-    private style: any
+    private style: SimpleStyleProfile
   ) {
     if (!openai) {
       throw new Error('OpenAI instance is required');
     }
   }
 
-  private createPrompt({ spec, style }: { spec: string; style: any }): string {
+  private createPrompt({ spec, style }: { spec: string; style: SimpleStyleProfile }): string {
     if (!spec) {
       throw new Error('Code specification is required');
     }
@@ -30,7 +32,7 @@ Make sure the code matches the user's detected style preferences (indentation, q
 `;
   }
 
-  async generateCode(input: { spec: string; style: any }): Promise<string> {
+  async generateCode(input: { spec: string; style: SimpleStyleProfile }): Promise<string> {
     try {
       const prompt = this.createPrompt(input);
 

@@ -4,7 +4,7 @@ export class PatternAnalyzer {
   private styleProfile: Record<string, number> = {};
   private fileCount: number = 0;
 
-  feed(content: string, analysisDepth: AnalysisDepth = 'detailed'): void {
+  feed(content: string, _analysisDepth: AnalysisDepth = 'detailed'): void {
     if (!content) {
       console.warn('Empty content provided to PatternAnalyzer');
       return;
@@ -23,17 +23,17 @@ export class PatternAnalyzer {
 
       // Update the style profile by adding to existing values
       this.styleProfile.indentSpaces =
-        (this.styleProfile.indentSpaces || 0) + indentSpaces;
+        (this.styleProfile.indentSpaces ?? 0) + indentSpaces;
       this.styleProfile.indentTabs =
-        (this.styleProfile.indentTabs || 0) + indentTabs;
+        (this.styleProfile.indentTabs ?? 0) + indentTabs;
       this.styleProfile.semicolons =
-        (this.styleProfile.semicolons || 0) + semicolons;
+        (this.styleProfile.semicolons ?? 0) + semicolons;
       this.styleProfile.singleQuotes =
-        (this.styleProfile.singleQuotes || 0) + singleQuotes;
+        (this.styleProfile.singleQuotes ?? 0) + singleQuotes;
       this.styleProfile.doubleQuotes =
-        (this.styleProfile.doubleQuotes || 0) + doubleQuotes;
+        (this.styleProfile.doubleQuotes ?? 0) + doubleQuotes;
       this.styleProfile.totalLines =
-        (this.styleProfile.totalLines || 0) + lines.length;
+        (this.styleProfile.totalLines ?? 0) + lines.length;
 
       this.fileCount++;
     } catch (error) {
@@ -54,14 +54,14 @@ export class PatternAnalyzer {
     }
 
     try {
-      const totalLines = this.styleProfile.totalLines || 1;
+      const totalLines = this.styleProfile.totalLines ?? 1;
 
       // Determine the dominant style
-      const indentSpaces = this.styleProfile.indentSpaces || 0;
-      const indentTabs = this.styleProfile.indentTabs || 0;
-      const singleQuotes = this.styleProfile.singleQuotes || 0;
-      const doubleQuotes = this.styleProfile.doubleQuotes || 0;
-      const semicolons = this.styleProfile.semicolons || 0;
+      const indentSpaces = this.styleProfile.indentSpaces ?? 0;
+      const indentTabs = this.styleProfile.indentTabs ?? 0;
+      const singleQuotes = this.styleProfile.singleQuotes ?? 0;
+      const doubleQuotes = this.styleProfile.doubleQuotes ?? 0;
+      const semicolons = this.styleProfile.semicolons ?? 0;
 
       const indentStyle = indentSpaces > indentTabs ? 'spaces' : 'tabs';
       const quoteStyle = singleQuotes > doubleQuotes ? 'single' : 'double';

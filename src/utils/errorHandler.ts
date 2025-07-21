@@ -148,14 +148,14 @@ export function handleGitHubError(
         );
       case 404:
         return createApiError(
-          `Repository not found: ${repository || 'unknown'}`,
+          `Repository not found: ${repository ?? 'unknown'}`,
           'GITHUB_NOT_FOUND',
           404,
           error
         );
       default:
         return createApiError(
-          `GitHub API error: ${githubError.message || 'Unknown error'}`,
+          `GitHub API error: ${githubError.message ?? 'Unknown error'}`,
           'GITHUB_API_ERROR',
           githubError.status,
           error
@@ -202,7 +202,7 @@ export function handleOpenAIError(error: unknown): ApiError {
         );
       default:
         return createApiError(
-          `OpenAI API error: ${openaiError.message || 'Unknown error'}`,
+          `OpenAI API error: ${openaiError.message ?? 'Unknown error'}`,
           'OPENAI_API_ERROR',
           openaiError.status,
           error
