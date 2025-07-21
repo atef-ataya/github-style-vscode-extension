@@ -1,935 +1,1163 @@
-// File: webviewContent.ts
-// Enhanced webview with Monaco Editor and multi-panel interface
+// Enhanced webviewContent.ts with Monaco Editor integration
 import * as vscode from 'vscode';
 
 export function getWebviewContent(
   webview: vscode.Webview,
   extensionUri: vscode.Uri
 ): string {
-  // Get URIs for Monaco Editor
+  // Get URIs for Monaco Editor - FIXED PATHS
   const monacoLoaderUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(
-      extensionUri,
-      'node_modules',
-      'monaco-editor',
-      'min',
-      'vs',
-      'loader.js'
-    )
+    vscode.Uri.joinPath(extensionUri, 'out', 'vs', 'loader.js')
   );
 
   const monacoUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(
-      extensionUri,
-      'node_modules',
-      'monaco-editor',
-      'min',
-      'vs'
-    )
+    vscode.Uri.joinPath(extensionUri, 'out', 'vs')
   );
 
-  return `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  // Generate a nonce for script security
+  function getNonce() {
+    let text = '';
+    const possible =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  }
+
+  const nonce = getNonce();
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; 
+          script-src 'nonce-${nonce}' ${webview.cspSource} 'unsafe-eval'; 
+          style-src ${webview.cspSource} 'unsafe-inline'; 
+          font-src ${webview.cspSource}; 
+          img-src ${webview.cspSource} data:;">
     <title>GitHub Style Agent - Professional</title>
-    <style>
+    <style nonce="${nonce}">
       :root {
-        --bg-primary: #1e1e1e;
-        --bg-secondary: #252526;
-        --bg-tertiary: #2d2d30;
-        --border-color: #3e3e42;
-        --text-primary: #cccccc;
-        --text-secondary: #969696;
-        --accent-blue: #007acc;
-        --accent-green: #4caf50;
-        --accent-red: #f44336;
-        --accent-orange: #ff9800;
-        --shadow: rgba(0, 0, 0, 0.3);
+        --vscode-editor-background: #1e1e1e;
+        --vscode-editor-foreground: #d4d4d4;
+        --vscode-sideBar-background: #252526;
+        --vscode-sideBar-border: #3e3e42;
+        --vscode-button-background: #0e639c;
+        --vscode-button-hoverBackground: #1177bb;
+        --vscode-input-background: #3c3c3c;
+        --vscode-input-border: #3e3e42;
+        --vscode-focusBorder: #007fd4;
+        --vscode-textLink-foreground: #3794ff;
+        --vscode-progressBar-background: #0e70c0;
+        --vscode-notifications-background: #252526;
+        --vscode-notifications-border: #3e3e42;
       }
-      
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-      
+
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: var(--bg-primary);
-        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background: var(--vscode-editor-background);
+        color: var(--vscode-editor-foreground);
         height: 100vh;
         overflow: hidden;
+        font-size: 13px;
       }
-      
+
       .main-container {
         display: flex;
         height: 100vh;
       }
-      
-      /* Left Configuration Panel */
+
+      /* Enhanced Left Panel */
       .config-panel {
         width: 350px;
-        background: var(--bg-secondary);
-        border-right: 1px solid var(--border-color);
-        padding: 20px;
+        background: var(--vscode-sideBar-background);
+        border-right: 1px solid var(--vscode-sideBar-border);
+        padding: 16px;
         overflow-y: auto;
         flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
       }
-      
+
       .config-section {
-        margin-bottom: 24px;
-        background: var(--bg-tertiary);
-        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
         padding: 16px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--vscode-sideBar-border);
       }
-      
+
       .config-section h3 {
-        color: var(--accent-blue);
-        font-size: 14px;
+        color: var(--vscode-textLink-foreground);
+        font-size: 13px;
         font-weight: 600;
         margin-bottom: 12px;
         display: flex;
         align-items: center;
         gap: 8px;
       }
-      
+
       .form-group {
         margin-bottom: 12px;
       }
-      
+
       .form-group label {
         display: block;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 500;
         margin-bottom: 4px;
-        color: var(--text-secondary);
+        color: var(--vscode-editor-foreground);
+        opacity: 0.9;
       }
-      
+
       .form-group input,
       .form-group select,
       .form-group textarea {
         width: 100%;
-        padding: 8px;
-        background: var(--bg-primary);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        color: var(--text-primary);
-        font-size: 13px;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        padding: 6px 8px;
+        background: var(--vscode-input-background);
+        border: 1px solid var(--vscode-input-border);
+        border-radius: 3px;
+        color: var(--vscode-editor-foreground);
+        font-size: 12px;
+        font-family: inherit;
+        transition: border-color 0.2s;
       }
-      
+
       .form-group input:focus,
       .form-group select:focus,
       .form-group textarea:focus {
         outline: none;
-        border-color: var(--accent-blue);
-        box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.25);
+        border-color: var(--vscode-focusBorder);
+        box-shadow: 0 0 0 1px var(--vscode-focusBorder);
       }
-      
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+
       .checkbox-group {
         display: flex;
         align-items: center;
         gap: 8px;
         margin: 8px 0;
       }
-      
+
       .checkbox-group input[type="checkbox"] {
         width: auto;
-        accent-color: var(--accent-blue);
+        margin: 0;
       }
-      
-      .status-indicator {
-        display: flex;
-        align-items: center;
-        gap: 6px;
+
+      .checkbox-group label {
+        margin: 0;
         font-size: 12px;
-        margin-top: 4px;
+        cursor: pointer;
       }
-      
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--accent-green);
-      }
-      
-      .status-dot.loading {
-        background: var(--accent-orange);
-        animation: pulse 1.5s infinite;
-      }
-      
-      .status-dot.error {
-        background: var(--accent-red);
-      }
-      
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-      }
-      
+
       .generate-btn {
         width: 100%;
-        padding: 12px;
-        background: linear-gradient(45deg, var(--accent-blue), #0066cc);
+        padding: 10px 16px;
+        background: var(--vscode-button-background);
         border: none;
-        border-radius: 6px;
+        border-radius: 3px;
         color: white;
-        font-weight: 600;
-        font-size: 14px;
+        font-weight: 500;
+        font-size: 13px;
         cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: 0 2px 8px var(--shadow);
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
       }
-      
-      .generate-btn:hover {
-        background: linear-gradient(45deg, #0066cc, var(--accent-blue));
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px var(--shadow);
+
+      .generate-btn:hover:not(:disabled) {
+        background: var(--vscode-button-hoverBackground);
       }
-      
-      .generate-btn:active {
-        transform: translateY(0);
-      }
-      
+
       .generate-btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        transform: none;
       }
-      
-      /* Right Code Panel */
+
+      /* Progress Section */
+      .progress-section {
+        background: var(--vscode-notifications-background);
+        border: 1px solid var(--vscode-notifications-border);
+        border-radius: 6px;
+        padding: 12px;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin: 8px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: var(--vscode-progressBar-background);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+        width: 0%;
+      }
+
+      .progress-text {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-top: 4px;
+      }
+
+      /* Style Profile Display */
+      .style-profile {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 8px;
+        font-size: 11px;
+      }
+
+      .style-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+      }
+
+      .style-value {
+        color: var(--vscode-textLink-foreground);
+        font-weight: 500;
+      }
+
+      /* Enhanced Right Panel */
       .code-panel {
         flex: 1;
         display: flex;
         flex-direction: column;
-        background: var(--bg-primary);
+        background: var(--vscode-editor-background);
+        min-width: 0;
       }
-      
+
       .code-header {
-        background: var(--bg-secondary);
-        border-bottom: 1px solid var(--border-color);
-        padding: 12px 20px;
+        background: var(--vscode-sideBar-background);
+        border-bottom: 1px solid var(--vscode-sideBar-border);
+        padding: 8px 16px;
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
+        min-height: 35px;
       }
-      
+
       .file-tabs {
         display: flex;
         gap: 2px;
         flex: 1;
+        overflow-x: auto;
       }
-      
+
       .file-tab {
-        padding: 8px 16px;
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--vscode-sideBar-border);
         border-bottom: none;
-        border-radius: 4px 4px 0 0;
+        border-radius: 3px 3px 0 0;
         cursor: pointer;
-        font-size: 13px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
         transition: all 0.2s;
-        color: var(--text-secondary);
-        max-width: 200px;
-        overflow: hidden;
         white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 150px;
       }
-      
+
       .file-tab.active {
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        border-bottom: 1px solid var(--bg-primary);
+        background: var(--vscode-editor-background);
+        color: var(--vscode-editor-foreground);
+        border-bottom: 1px solid var(--vscode-editor-background);
         margin-bottom: -1px;
       }
-      
-      .file-tab:hover {
-        background: var(--bg-primary);
-        color: var(--text-primary);
+
+      .file-tab:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--vscode-editor-foreground);
       }
-      
+
+      .file-tab .file-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       .file-tab .close-btn {
-        margin-left: 8px;
         opacity: 0.6;
         cursor: pointer;
+        padding: 2px;
+        border-radius: 2px;
+        font-size: 10px;
+        line-height: 1;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      
+
       .file-tab .close-btn:hover {
         opacity: 1;
+        background: rgba(255, 255, 255, 0.1);
       }
-      
+
       .code-actions {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         align-items: center;
       }
-      
+
       .action-btn {
-        padding: 6px 12px;
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        color: var(--text-primary);
-        font-size: 12px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--vscode-sideBar-border);
+        border-radius: 3px;
+        color: var(--vscode-editor-foreground);
+        font-size: 11px;
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
         align-items: center;
         gap: 4px;
+        white-space: nowrap;
       }
-      
+
       .action-btn:hover {
-        background: var(--accent-blue);
-        border-color: var(--accent-blue);
+        background: var(--vscode-button-background);
+        border-color: var(--vscode-button-background);
       }
-      
+
+      /* Monaco Container */
       .monaco-container {
         flex: 1;
         border: none;
         overflow: hidden;
+        position: relative;
       }
-      
+
+      /* Welcome Screen */
       .welcome-screen {
-        flex: 1;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
         padding: 40px;
-        background: var(--bg-primary);
+        background: var(--vscode-editor-background);
       }
-      
+
       .welcome-screen h2 {
-        color: var(--accent-blue);
+        color: var(--vscode-textLink-foreground);
         margin-bottom: 16px;
         font-size: 24px;
+        font-weight: 300;
       }
-      
+
       .welcome-screen p {
-        color: var(--text-secondary);
-        font-size: 16px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
         line-height: 1.5;
-        max-width: 500px;
+        max-width: 400px;
       }
-      
-      .progress-bar {
-        width: 100%;
-        height: 3px;
-        background: var(--bg-tertiary);
-        border-radius: 3px;
-        overflow: hidden;
-        margin: 12px 0;
+
+      .welcome-screen .logo {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.8;
       }
-      
-      .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
-        border-radius: 3px;
-        transition: width 0.3s ease;
-        width: 0%;
-      }
-      
-      .progress-text {
-        font-size: 12px;
-        color: var(--text-secondary);
-        margin-top: 4px;
-      }
-      
-      /* Style Profile Display */
-      .style-profile {
-        background: var(--bg-primary);
-        border-radius: 4px;
-        padding: 12px;
-        margin-top: 8px;
-      }
-      
-      .style-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 4px 0;
-        font-size: 12px;
-      }
-      
-      .style-value {
-        color: var(--accent-green);
-        font-weight: 500;
-      }
-      
+
       /* Loading States */
       .loading-spinner {
         display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid var(--border-color);
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 50%;
-        border-top-color: var(--accent-blue);
+        border-top-color: var(--vscode-textLink-foreground);
         animation: spin 1s ease-in-out infinite;
       }
-      
+
       @keyframes spin {
         to { transform: rotate(360deg); }
       }
-      
-      /* Responsive */
+
+      /* Notifications */
+      .notification {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        background: var(--vscode-notifications-background);
+        border: 1px solid var(--vscode-notifications-border);
+        border-radius: 6px;
+        padding: 12px 16px;
+        max-width: 300px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+        font-size: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .notification.success {
+        border-left: 3px solid #4caf50;
+      }
+
+      .notification.error {
+        border-left: 3px solid #f44336;
+      }
+
+      .notification.info {
+        border-left: 3px solid var(--vscode-textLink-foreground);
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      /* Responsive Design */
       @media (max-width: 768px) {
+        .main-container {
+          flex-direction: column;
+        }
+        
         .config-panel {
           width: 100%;
           height: 40vh;
           border-right: none;
-          border-bottom: 1px solid var(--border-color);
-        }
-        
-        .main-container {
-          flex-direction: column;
+          border-bottom: 1px solid var(--vscode-sideBar-border);
         }
         
         .code-panel {
           height: 60vh;
         }
       }
+
+      /* Status Indicators */
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        margin-top: 4px;
+        opacity: 0.8;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #4caf50;
+      }
+
+      .status-dot.loading {
+        background: #ff9800;
+        animation: pulse 1.5s infinite;
+      }
+
+      .status-dot.error {
+        background: #f44336;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Scrollbar Styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--vscode-editor-background);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="main-container">
-      <!-- Left Configuration Panel -->
-      <div class="config-panel">
-        <!-- GitHub Analysis Section -->
-        <div class="config-section">
-          <h3>🔍 GitHub Style Analysis</h3>
-          
-          <div class="form-group">
-            <label>GitHub Token</label>
-            <input type="password" id="githubToken" placeholder="ghp_..." />
-          </div>
-          
-          <div class="form-group">
-            <label>GitHub Username</label>
-            <input type="text" id="githubUsername" placeholder="your-username" />
-            <div class="status-indicator" id="usernameStatus" style="display: none;">
-              <div class="status-dot"></div>
-              <span>Repositories found</span>
+        <!-- Enhanced Left Configuration Panel -->
+        <div class="config-panel">
+            <!-- GitHub Analysis Section -->
+            <div class="config-section">
+                <h3>🔍 GitHub Style Analysis</h3>
+                
+                <div class="form-group">
+                    <label>GitHub Token</label>
+                    <input type="password" id="githubToken" placeholder="ghp_..." />
+                </div>
+                
+                <div class="form-group">
+                    <label>GitHub Username</label>
+                    <input type="text" id="githubUsername" placeholder="your-username" />
+                    <div class="status-indicator" id="usernameStatus" style="display: none;">
+                        <div class="status-dot"></div>
+                        <span>Repositories found</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>OpenAI API Key</label>
+                    <input type="password" id="openaiKey" placeholder="sk-..." />
+                </div>
+                
+                <div class="form-group">
+                    <label>Max Repositories</label>
+                    <input type="number" id="maxRepos" value="20" min="1" max="50" />
+                </div>
+                
+                <!-- Style Profile Display -->
+                <div class="style-profile" id="styleProfile" style="display: none;">
+                    <div style="font-weight: 600; margin-bottom: 6px; color: var(--vscode-textLink-foreground);">Detected Style:</div>
+                    <div class="style-item">
+                        <span>Indentation:</span>
+                        <span class="style-value" id="indentStyle">-</span>
+                    </div>
+                    <div class="style-item">
+                        <span>Quotes:</span>
+                        <span class="style-value" id="quoteStyle">-</span>
+                    </div>
+                    <div class="style-item">
+                        <span>Semicolons:</span>
+                        <span class="style-value" id="semicolonStyle">-</span>
+                    </div>
+                    <div class="style-item">
+                        <span>Confidence:</span>
+                        <span class="style-value" id="confidenceLevel">-</span>
+                    </div>
+                </div>
             </div>
-          </div>
-          
-          <div class="form-group">
-            <label>OpenAI API Key</label>
-            <input type="password" id="openaiKey" placeholder="sk-..." />
-          </div>
-          
-          <div class="form-group">
-            <label>Max Repositories</label>
-            <input type="number" id="maxRepos" value="20" min="1" max="50" />
-          </div>
-          
-          <!-- Style Profile Display -->
-          <div class="style-profile" id="styleProfile" style="display: none;">
-            <div class="style-item">
-              <span>Indentation:</span>
-              <span class="style-value" id="indentStyle">-</span>
+            
+            <!-- AI Configuration Section -->
+            <div class="config-section">
+                <h3>🤖 AI Configuration</h3>
+                
+                <div class="form-group">
+                    <label>AI Model</label>
+                    <select id="aiModel">
+                        <option value="gpt-4">GPT-4 (Recommended)</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Complexity Level</label>
+                    <select id="complexity">
+                        <option value="simple">Simple</option>
+                        <option value="moderate" selected>Moderate</option>
+                        <option value="complex">Complex</option>
+                    </select>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="includeTests" />
+                    <label for="includeTests">Include Tests</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="includeComments" checked />
+                    <label for="includeComments">Include Comments</label>
+                </div>
             </div>
-            <div class="style-item">
-              <span>Quotes:</span>
-              <span class="style-value" id="quoteStyle">-</span>
+            
+            <!-- Project Options Section -->
+            <div class="config-section">
+                <h3>📁 Project Options</h3>
+                
+                <div class="form-group">
+                    <label>Project Template</label>
+                    <select id="projectTemplate">
+                        <option value="custom">Custom Code</option>
+                        <option value="express-api">Express.js API</option>
+                        <option value="react-app">React Application</option>
+                        <option value="nextjs-app">Next.js Application</option>
+                        <option value="vue-app">Vue.js Application</option>
+                        <option value="node-cli">Node.js CLI Tool</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>What do you want to build?</label>
+                    <textarea id="codeSpec" placeholder="Describe your project in detail..."></textarea>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="useTypeScript" />
+                    <label for="useTypeScript">Use TypeScript</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="initGit" checked />
+                    <label for="initGit">Initialize Git</label>
+                </div>
             </div>
-            <div class="style-item">
-              <span>Semicolons:</span>
-              <span class="style-value" id="semicolonStyle">-</span>
+            
+            <!-- Progress Section -->
+            <div class="config-section progress-section" id="progressSection" style="display: none;">
+                <h3>⚡ Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Ready to analyze...</div>
             </div>
-            <div class="style-item">
-              <span>Confidence:</span>
-              <span class="style-value" id="confidenceLevel">-</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- AI Configuration Section -->
-        <div class="config-section">
-          <h3>🤖 AI Configuration</h3>
-          
-          <div class="form-group">
-            <label>AI Model</label>
-            <select id="aiModel">
-              <option value="gpt-4">GPT-4 (Recommended)</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-              <option value="gpt-4-turbo">GPT-4 Turbo</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label>Complexity Level</label>
-            <select id="complexity">
-              <option value="simple">Simple</option>
-              <option value="moderate" selected>Moderate</option>
-              <option value="complex">Complex</option>
-            </select>
-          </div>
-          
-          <div class="checkbox-group">
-            <input type="checkbox" id="includeTests" />
-            <label for="includeTests">Include Tests</label>
-          </div>
-          
-          <div class="checkbox-group">
-            <input type="checkbox" id="includeComments" checked />
-            <label for="includeComments">Include Comments</label>
-          </div>
-        </div>
-        
-        <!-- Project Options Section -->
-        <div class="config-section">
-          <h3>📁 Project Options</h3>
-          
-          <div class="form-group">
-            <label>Project Template</label>
-            <select id="projectTemplate">
-              <option value="custom">Custom Code</option>
-              <option value="express-api">Express.js API</option>
-              <option value="react-app">React Application</option>
-              <option value="nextjs-app">Next.js Application</option>
-              <option value="vue-app">Vue.js Application</option>
-              <option value="node-cli">Node.js CLI Tool</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label>What do you want to build?</label>
-            <textarea id="codeSpec" rows="3" placeholder="Describe your project in detail..."></textarea>
-          </div>
-          
-          <div class="checkbox-group">
-            <input type="checkbox" id="useTypeScript" />
-            <label for="useTypeScript">Use TypeScript</label>
-          </div>
-          
-          <div class="checkbox-group">
-            <input type="checkbox" id="initGit" checked />
-            <label for="initGit">Initialize Git</label>
-          </div>
-        </div>
-        
-        <!-- Progress Section -->
-        <div class="config-section" id="progressSection" style="display: none;">
-          <h3>⚡ Progress</h3>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-          </div>
-          <div class="progress-text" id="progressText">Ready to analyze...</div>
-        </div>
-        
-        <!-- Generate Button -->
-        <button class="generate-btn" id="generateBtn" onclick="startGeneration()">
-          🚀 Analyze & Generate
-        </button>
-      </div>
-      
-      <!-- Right Code Panel -->
-      <div class="code-panel">
-        <div class="code-header">
-          <div class="file-tabs" id="fileTabs">
-            <!-- File tabs will be dynamically added here -->
-          </div>
-          
-          <div class="code-actions" id="codeActions" style="display: none;">
-            <button class="action-btn" onclick="saveProject()" title="Save Project">
-              💾 Save Project
+            
+            <!-- Generate Button -->
+            <button class="generate-btn" id="generateBtn" onclick="startGeneration()">
+                🚀 Analyze & Generate
             </button>
-            <button class="action-btn" onclick="exportFiles()" title="Export Files">
-              📁 Export
-            </button>
-            <button class="action-btn" onclick="copyCurrentFile()" title="Copy Code">
-              📋 Copy
-            </button>
-            <button class="action-btn" onclick="downloadProject()" title="Download ZIP">
-              ⬇️ Download
-            </button>
-          </div>
         </div>
         
-        <div class="monaco-container" id="monacoContainer">
-          <!-- Welcome Screen -->
-          <div class="welcome-screen" id="welcomeScreen">
-            <h2>🧠 GitHub Style Agent</h2>
-            <p>Configure your GitHub credentials and project requirements in the left panel, then click "Analyze & Generate" to create code that matches your personal coding style.</p>
-          </div>
+        <!-- Enhanced Right Code Panel -->
+        <div class="code-panel">
+            <div class="code-header">
+                <div class="file-tabs" id="fileTabs">
+                    <!-- File tabs will be dynamically added here -->
+                </div>
+                
+                <div class="code-actions" id="codeActions" style="display: none;">
+                    <button class="action-btn" onclick="saveProject()" title="Save Project">
+                        💾 Save
+                    </button>
+                    <button class="action-btn" onclick="exportFiles()" title="Export Files">
+                        📁 Export
+                    </button>
+                    <button class="action-btn" onclick="copyCurrentFile()" title="Copy Code">
+                        📋 Copy
+                    </button>
+                    <button class="action-btn" onclick="downloadProject()" title="Download ZIP">
+                        ⬇️ Download
+                    </button>
+                </div>
+            </div>
+            
+            <div class="monaco-container" id="monacoContainer">
+                <!-- Welcome Screen -->
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="logo">🧠</div>
+                    <h2>GitHub Style Agent</h2>
+                    <p>Configure your GitHub credentials and project requirements, then generate code that matches your personal coding style.</p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Monaco Editor Loader -->
-    <script src="${monacoLoaderUri.toString()}"></script>
-    <script>
-      // Global variables
-      let monacoEditor = null;
-      let currentFiles = {};
-      let activeFile = null;
-      let styleProfile = null;
-      
-      // Monaco Editor setup
-      require.config({ paths: { vs: '${monacoUri.toString()}' } });
-      require(['vs/editor/editor.main'], function () {
-        // Monaco is ready but we'll create editor when needed
-        console.log('Monaco Editor loaded and ready');
-      });
-      
-      const vscode = acquireVsCodeApi();
-      
-      // Create Monaco Editor
-      function createMonacoEditor(content = '', language = 'javascript') {
-        const container = document.getElementById('monacoContainer');
-        container.innerHTML = '';
+    <!-- Monaco Editor Integration -->
+    <script nonce="${nonce}" src="${monacoLoaderUri.toString()}"></script>
+    <script nonce="${nonce}">
+        // Global variables
+        let monacoEditor = null;
+        let currentFiles = {};
+        let activeFile = null;
+        let styleProfile = null;
         
-        monacoEditor = monaco.editor.create(container, {
-          value: content,
-          language: language,
-          theme: 'vs-dark',
-          fontSize: 14,
-          lineNumbers: 'on',
-          roundedSelection: false,
-          scrollBeyondLastLine: false,
-          automaticLayout: true,
-          minimap: { enabled: true },
-          wordWrap: 'on',
-          folding: true,
-          lineDecorationsWidth: 10,
-          lineNumbersMinChars: 3,
-          glyphMargin: false,
-          scrollbar: {
-            vertical: 'visible',
-            horizontal: 'visible',
-            useShadows: false,
-            verticalHasArrows: false,
-            horizontalHasArrows: false,
-            verticalScrollbarSize: 14,
-            horizontalScrollbarSize: 14
-          }
-        });
+        // VS Code API
+        const vscode = acquireVsCodeApi();
         
-        // Auto-save on content change
-        monacoEditor.onDidChangeModelContent(() => {
-          if (activeFile) {
-            currentFiles[activeFile].content = monacoEditor.getValue();
-          }
-        });
-        
-        return monacoEditor;
-      }
-      
-      // File management
-      function addFile(fileName, content, language = 'javascript') {
-        currentFiles[fileName] = { content, language };
-        updateFileTabs();
-        switchToFile(fileName);
-        showCodeActions();
-      }
-      
-      function switchToFile(fileName) {
-        if (!currentFiles[fileName]) return;
-        
-        activeFile = fileName;
-        const file = currentFiles[fileName];
-        
-        if (monacoEditor) {
-          const model = monaco.editor.createModel(file.content, file.language);
-          monacoEditor.setModel(model);
-        } else {
-          createMonacoEditor(file.content, file.language);
-        }
-        
-        updateFileTabs();
-        hideWelcomeScreen();
-      }
-      
-      function closeFile(fileName) {
-        delete currentFiles[fileName];
-        
-        if (activeFile === fileName) {
-          const remainingFiles = Object.keys(currentFiles);
-          if (remainingFiles.length > 0) {
-            switchToFile(remainingFiles[0]);
-          } else {
-            showWelcomeScreen();
-            hideCodeActions();
-            activeFile = null;
-          }
-        }
-        
-        updateFileTabs();
-      }
-      
-      function updateFileTabs() {
-        const tabsContainer = document.getElementById('fileTabs');
-        tabsContainer.innerHTML = '';
-        
-        Object.keys(currentFiles).forEach(fileName => {
-          const tab = document.createElement('div');
-          tab.className = \`file-tab \${fileName === activeFile ? 'active' : ''}\`;
-          tab.innerHTML = \`
-            <span>\${fileName}</span>
-            <span class="close-btn" onclick="closeFile('\${fileName}')">✕</span>
-          \`;
-          tab.onclick = (e) => {
-            if (e.target.classList.contains('close-btn')) return;
-            switchToFile(fileName);
-          };
-          tabsContainer.appendChild(tab);
-        });
-      }
-      
-      function showWelcomeScreen() {
-        document.getElementById('welcomeScreen').style.display = 'flex';
-        if (monacoEditor) {
-          document.getElementById('monacoContainer').innerHTML = '';
-          document.getElementById('monacoContainer').appendChild(document.getElementById('welcomeScreen'));
-          monacoEditor = null;
-        }
-      }
-      
-      function hideWelcomeScreen() {
-        document.getElementById('welcomeScreen').style.display = 'none';
-      }
-      
-      function showCodeActions() {
-        document.getElementById('codeActions').style.display = 'flex';
-      }
-      
-      function hideCodeActions() {
-        document.getElementById('codeActions').style.display = 'none';
-      }
-      
-      // Progress management
-      function updateProgress(progress, message) {
-        document.getElementById('progressSection').style.display = 'block';
-        document.getElementById('progressFill').style.width = progress + '%';
-        document.getElementById('progressText').textContent = message;
-      }
-      
-      function hideProgress() {
-        document.getElementById('progressSection').style.display = 'none';
-      }
-      
-      function showError(message) {
-        // Create error notification
-        const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = \`
-          position: fixed;
-          top: 20px;
-          right: 20px;
-          background: var(--accent-red);
-          color: white;
-          padding: 12px 16px;
-          border-radius: 6px;
-          z-index: 1000;
-          max-width: 300px;
-        \`;
-        errorDiv.textContent = '❌ ' + message;
-        document.body.appendChild(errorDiv);
-        
-        setTimeout(() => errorDiv.remove(), 5000);
-      }
-      
-      function showSuccess(message) {
-        const successDiv = document.createElement('div');
-        successDiv.style.cssText = \`
-          position: fixed;
-          top: 20px;
-          right: 20px;
-          background: var(--accent-green);
-          color: white;
-          padding: 12px 16px;
-          border-radius: 6px;
-          z-index: 1000;
-          max-width: 300px;
-        \`;
-        successDiv.textContent = '✅ ' + message;
-        document.body.appendChild(successDiv);
-        
-        setTimeout(() => successDiv.remove(), 3000);
-      }
-      
-      // Main generation function
-      async function startGeneration() {
-        const token = document.getElementById('githubToken').value.trim();
-        const username = document.getElementById('githubUsername').value.trim();
-        const openaiKey = document.getElementById('openaiKey').value.trim();
-        const codeSpec = document.getElementById('codeSpec').value.trim();
-        const maxRepos = parseInt(document.getElementById('maxRepos').value) || 20;
-        
-        // Validation
-        if (!token || !username || !openaiKey || !codeSpec) {
-          showError('Please fill in all required fields');
-          return;
-        }
-        
-        // Disable button and show progress
-        const btn = document.getElementById('generateBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
-        
-        try {
-          // Clear previous files
-          currentFiles = {};
-          activeFile = null;
-          updateFileTabs();
-          showWelcomeScreen();
-          hideCodeActions();
-          
-          // Send message to extension
-          vscode.postMessage({
-            command: 'analyzeAndGenerate',
-            token,
-            openaiKey,
-            username,
-            spec: codeSpec,
-            maxRepos,
-            options: {
-              model: document.getElementById('aiModel').value,
-              complexity: document.getElementById('complexity').value,
-              includeTests: document.getElementById('includeTests').checked,
-              includeComments: document.getElementById('includeComments').checked,
-              template: document.getElementById('projectTemplate').value,
-              useTypeScript: document.getElementById('useTypeScript').checked,
-              initGit: document.getElementById('initGit').checked
+        // Monaco Editor setup with proper error handling
+        require.config({ 
+            paths: { 
+                vs: '${monacoUri.toString()}' 
             }
-          });
-          
-        } catch (error) {
-          showError('Failed to start generation: ' + error.message);
-          resetGenerateButton();
+        });
+        
+        // Initialize Monaco Editor
+        require(['vs/editor/editor.main'], function () {
+            console.log('✅ Monaco Editor loaded successfully');
+            
+            // Create the editor when files are added
+            window.monacoReady = true;
+        }, function(error) {
+            console.error('❌ Failed to load Monaco Editor:', error);
+            showNotification('Failed to load Monaco Editor. Using fallback text editor.', 'error');
+        });
+        
+        // Create Monaco Editor instance
+        function createMonacoEditor(content = '', language = 'javascript') {
+            const container = document.getElementById('monacoContainer');
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            try {
+                monacoEditor = monaco.editor.create(container, {
+                    value: content,
+                    language: language,
+                    theme: 'vs-dark',
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    roundedSelection: false,
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    minimap: { enabled: true },
+                    wordWrap: 'on',
+                    folding: true,
+                    lineDecorationsWidth: 10,
+                    lineNumbersMinChars: 3,
+                    glyphMargin: false,
+                    contextmenu: true,
+                    mouseWheelZoom: true,
+                    quickSuggestions: true,
+                    suggestOnTriggerCharacters: true,
+                    acceptSuggestionOnEnter: 'on',
+                    tabCompletion: 'on',
+                    wordBasedSuggestions: true,
+                    parameterHints: { enabled: true },
+                    autoIndent: 'full',
+                    formatOnType: true,
+                    formatOnPaste: true,
+                    dragAndDrop: true,
+                    links: true,
+                    colorDecorators: true,
+                    lightbulb: { enabled: true },
+                    scrollbar: {
+                        vertical: 'visible',
+                        horizontal: 'visible',
+                        useShadows: false,
+                        verticalHasArrows: false,
+                        horizontalHasArrows: false,
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10
+                    }
+                });
+                
+                // Auto-save on content change
+                monacoEditor.onDidChangeModelContent(() => {
+                    if (activeFile && currentFiles[activeFile]) {
+                        currentFiles[activeFile].content = monacoEditor.getValue();
+                    }
+                });
+                
+                // Focus management
+                monacoEditor.onDidFocusEditorText(() => {
+                    console.log('Editor focused');
+                });
+                
+                console.log('✅ Monaco Editor instance created');
+                return monacoEditor;
+                
+            } catch (error) {
+                console.error('❌ Error creating Monaco Editor:', error);
+                showNotification('Error creating Monaco Editor: ' + error.message, 'error');
+                return null;
+            }
         }
-      }
-      
-      function resetGenerateButton() {
-        const btn = document.getElementById('generateBtn');
-        btn.disabled = false;
-        btn.innerHTML = '🚀 Analyze & Generate';
-        hideProgress();
-      }
-      
-      // Action functions
-      function saveProject() {
-        if (Object.keys(currentFiles).length === 0) return;
         
-        vscode.postMessage({
-          command: 'saveProject',
-          files: currentFiles
-        });
-      }
-      
-      function exportFiles() {
-        if (Object.keys(currentFiles).length === 0) return;
-        
-        vscode.postMessage({
-          command: 'exportFiles',
-          files: currentFiles
-        });
-      }
-      
-      function copyCurrentFile() {
-        if (!activeFile || !currentFiles[activeFile]) return;
-        
-        vscode.postMessage({
-          command: 'copyToClipboard',
-          code: currentFiles[activeFile].content
-        });
-      }
-      
-      function downloadProject() {
-        if (Object.keys(currentFiles).length === 0) return;
-        
-        vscode.postMessage({
-          command: 'downloadProject',
-          files: currentFiles
-        });
-      }
-      
-      // Message handling from extension
-      window.addEventListener('message', event => {
-        const message = event.data;
-        
-        switch (message.command) {
-          case 'showProgress':
-            updateProgress(message.progress, message.message);
-            break;
+        // File management functions
+        function addFile(fileName, content, language = 'javascript') {
+            if (!fileName) return;
             
-          case 'showStyleProfile':
-            styleProfile = message.profile;
-            displayStyleProfile(message.profile);
-            break;
+            currentFiles[fileName] = { content, language };
+            updateFileTabs();
+            switchToFile(fileName);
+            showCodeActions();
             
-          case 'showGeneratedFiles':
-            displayGeneratedFiles(message.files);
-            resetGenerateButton();
-            showSuccess('Code generation completed!');
-            break;
-            
-          case 'showError':
-            showError(message.error);
-            resetGenerateButton();
-            break;
-            
-          case 'saveSuccess':
-            showSuccess('Project saved successfully!');
-            break;
-            
-          case 'copySuccess':
-            showSuccess('Code copied to clipboard!');
-            break;
+            showNotification('Added file: ' + fileName, 'success');
         }
-      });
-      
-      function displayStyleProfile(profile) {
-        document.getElementById('styleProfile').style.display = 'block';
-        document.getElementById('indentStyle').textContent = profile.indentStyle;
-        document.getElementById('quoteStyle').textContent = profile.quoteStyle;
-        document.getElementById('semicolonStyle').textContent = profile.useSemicolons ? 'Yes' : 'No';
-        document.getElementById('confidenceLevel').textContent = 
-          profile.confidence ? \`\${profile.confidence.level} (\${profile.confidence.percentage}%)\` : 'Unknown';
-      }
-      
-      function displayGeneratedFiles(files) {
-        // Clear existing files
-        currentFiles = {};
         
-        // Add each generated file
-        Object.entries(files).forEach(([fileName, fileData]) => {
-          const language = getLanguageFromFileName(fileName);
-          addFile(fileName, fileData.content, language);
+        function switchToFile(fileName) {
+            if (!currentFiles[fileName]) return;
+            
+            activeFile = fileName;
+            const file = currentFiles[fileName];
+            
+            if (window.monacoReady) {
+                if (monacoEditor) {
+                    // Create new model for the file
+                    const model = monaco.editor.createModel(file.content, file.language);
+                    monacoEditor.setModel(model);
+                } else {
+                    createMonacoEditor(file.content, file.language);
+                }
+            } else {
+                // Fallback to textarea if Monaco isn't ready
+                createFallbackEditor(file.content);
+            }
+            
+            updateFileTabs();
+            hideWelcomeScreen();
+        }
+        
+        function closeFile(fileName, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            delete currentFiles[fileName];
+            
+            if (activeFile === fileName) {
+                const remainingFiles = Object.keys(currentFiles);
+                if (remainingFiles.length > 0) {
+                    switchToFile(remainingFiles[0]);
+                } else {
+                    showWelcomeScreen();
+                    hideCodeActions();
+                    activeFile = null;
+                    if (monacoEditor) {
+                        monacoEditor.dispose();
+                        monacoEditor = null;
+                    }
+                }
+            }
+            
+            updateFileTabs();
+            showNotification('Closed file: ' + fileName, 'info');
+        }
+        
+        function updateFileTabs() {
+            const tabsContainer = document.getElementById('fileTabs');
+            tabsContainer.innerHTML = '';
+            
+            Object.keys(currentFiles).forEach(fileName => {
+                const tab = document.createElement('div');
+                tab.className = \`file-tab \${fileName === activeFile ? 'active' : ''}\`;
+                
+                // Get file icon based on extension
+                const icon = getFileIcon(fileName);
+                
+                tab.innerHTML = \`
+                    <span class="file-icon">\${icon}</span>
+                    <span class="file-name" title="\${fileName}">\${fileName}</span>
+                    <span class="close-btn" onclick="closeFile('\${fileName}', event)" title="Close">✕</span>
+                \`;
+                
+                tab.onclick = (e) => {
+                    if (!e.target.classList.contains('close-btn')) {
+                        switchToFile(fileName);
+                    }
+                };
+                
+                tabsContainer.appendChild(tab);
+            });
+        }
+        
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop()?.toLowerCase();
+            const iconMap = {
+                js: '🟨', jsx: '🔷', ts: '🔵', tsx: '🔷',
+                html: '🟠', css: '🎨', scss: '🎨',
+                json: '📄', md: '📝', txt: '📄',
+                py: '🐍', java: '☕', php: '🐘',
+                vue: '💚', svelte: '🧡', go: '🐹',
+                rs: '🦀', cpp: '⚙️', c: '⚙️'
+            };
+            return iconMap[ext] || '📄';
+        }
+        
+        function showWelcomeScreen() {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const container = document.getElementById('monacoContainer');
+            
+            if (monacoEditor) {
+                monacoEditor.dispose();
+                monacoEditor = null;
+            }
+            
+            container.innerHTML = '';
+            container.appendChild(welcomeScreen);
+            welcomeScreen.style.display = 'flex';
+        }
+        
+        function hideWelcomeScreen() {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            welcomeScreen.style.display = 'none';
+        }
+        
+        function showCodeActions() {
+            document.getElementById('codeActions').style.display = 'flex';
+        }
+        
+        function hideCodeActions() {
+            document.getElementById('codeActions').style.display = 'none';
+        }
+        
+        // Fallback editor for when Monaco fails
+        function createFallbackEditor(content) {
+            const container = document.getElementById('monacoContainer');
+            container.innerHTML = \`
+                <textarea style="
+                    width: 100%; 
+                    height: 100%; 
+                    background: var(--vscode-editor-background); 
+                    color: var(--vscode-editor-foreground); 
+                    border: none; 
+                    font-family: 'Cascadia Code', 'Fira Code', monospace; 
+                    font-size: 14px; 
+                    padding: 16px; 
+                    resize: none;
+                    outline: none;
+                " placeholder="Monaco Editor failed to load. Using fallback editor.">\${content}</textarea>
+            \`;
+        }
+        
+        // Progress management
+        function updateProgress(progress, message) {
+            const section = document.getElementById('progressSection');
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
+            
+            section.style.display = 'block';
+            fill.style.width = progress + '%';
+            text.textContent = message;
+        }
+        
+        function hideProgress() {
+            document.getElementById('progressSection').style.display = 'none';
+        }
+        
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = \`notification \${type}\`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, type === 'error' ? 5000 : 3000);
+        }
+        
+        // Main generation function
+        async function startGeneration() {
+            const token = document.getElementById('githubToken').value.trim();
+            const username = document.getElementById('githubUsername').value.trim();
+            const openaiKey = document.getElementById('openaiKey').value.trim();
+            const codeSpec = document.getElementById('codeSpec').value.trim();
+            const maxRepos = parseInt(document.getElementById('maxRepos').value) || 20;
+            
+            // Validation
+            if (!token || !username || !openaiKey || !codeSpec) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // Disable button and show progress
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+            
+            try {
+                // Clear previous files
+                Object.keys(currentFiles).forEach(fileName => {
+                    if (monacoEditor) {
+                        monacoEditor.dispose();
+                        monacoEditor = null;
+                    }
+                });
+                currentFiles = {};
+                activeFile = null;
+                updateFileTabs();
+                showWelcomeScreen();
+                hideCodeActions();
+                
+                // Send message to extension
+                vscode.postMessage({
+                    command: 'analyzeAndGenerate',
+                    token,
+                    openaiKey,
+                    username,
+                    spec: codeSpec,
+                    maxRepos,
+                    options: {
+                        model: document.getElementById('aiModel').value,
+                        complexity: document.getElementById('complexity').value,
+                        includeTests: document.getElementById('includeTests').checked,
+                        includeComments: document.getElementById('includeComments').checked,
+                        template: document.getElementById('projectTemplate').value,
+                        useTypeScript: document.getElementById('useTypeScript').checked,
+                        initGit: document.getElementById('initGit').checked
+                    }
+                });
+                
+            } catch (error) {
+                showNotification('Failed to start generation: ' + error.message, 'error');
+                resetGenerateButton();
+            }
+        }
+        
+        function resetGenerateButton() {
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = false;
+            btn.innerHTML = '🚀 Analyze & Generate';
+            hideProgress();
+        }
+        
+        // Action functions
+        function saveProject() {
+            if (Object.keys(currentFiles).length === 0) {
+                showNotification('No files to save', 'error');
+                return;
+            }
+            
+            vscode.postMessage({
+                command: 'saveProject',
+                files: currentFiles
+            });
+        }
+        
+        function exportFiles() {
+            if (Object.keys(currentFiles).length === 0) {
+                showNotification('No files to export', 'error');
+                return;
+            }
+            
+            vscode.postMessage({
+                command: 'exportFiles',
+                files: currentFiles
+            });
+        }
+        
+        function copyCurrentFile() {
+            if (!activeFile || !currentFiles[activeFile]) {
+                showNotification('No active file to copy', 'error');
+                return;
+            }
+            
+            vscode.postMessage({
+                command: 'copyToClipboard',
+                code: currentFiles[activeFile].content
+            });
+        }
+        
+        function downloadProject() {
+            if (Object.keys(currentFiles).length === 0) {
+                showNotification('No files to download', 'error');
+                return;
+            }
+            
+            vscode.postMessage({
+                command: 'downloadProject',
+                files: currentFiles
+            });
+        }
+        
+        // Message handling from extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            
+            switch (message.command) {
+                case 'showProgress':
+                    updateProgress(message.progress, message.message);
+                    break;
+                    
+                case 'showStyleProfile':
+                    styleProfile = message.profile;
+                    displayStyleProfile(message.profile);
+                    break;
+                    
+                case 'showGeneratedFiles':
+                    displayGeneratedFiles(message.files);
+                    resetGenerateButton();
+                    showNotification('Code generation completed!', 'success');
+                    break;
+                    
+                case 'showError':
+                    showNotification(message.error, 'error');
+                    resetGenerateButton();
+                    break;
+                    
+                case 'saveSuccess':
+                    showNotification('Project saved successfully!', 'success');
+                    break;
+                    
+                case 'copySuccess':
+                    showNotification('Code copied to clipboard!', 'success');
+                    break;
+            }
         });
-      }
-      
-      function getLanguageFromFileName(fileName) {
-        const ext = fileName.split('.').pop().toLowerCase();
-        const languageMap = {
-          js: 'javascript',
-          ts: 'typescript',
-          jsx: 'javascript',
-          tsx: 'typescript',
-          py: 'python',
-          java: 'java',
-          cpp: 'cpp',
-          c: 'c',
-          cs: 'csharp',
-          php: 'php',
-          rb: 'ruby',
-          go: 'go',
-          rs: 'rust',
-          vue: 'vue',
-          html: 'html',
-          css: 'css',
-          scss: 'scss',
-          json: 'json',
-          md: 'markdown',
-          yaml: 'yaml',
-          yml: 'yaml'
-        };
-        return languageMap[ext] || 'text';
-      }
+        
+        function displayStyleProfile(profile) {
+            const profileDiv = document.getElementById('styleProfile');
+            const indentSpan = document.getElementById('indentStyle');
+            const quoteSpan = document.getElementById('quoteStyle');
+            const semicolonSpan = document.getElementById('semicolonStyle');
+            const confidenceSpan = document.getElementById('confidenceLevel');
+            
+            profileDiv.style.display = 'block';
+            indentSpan.textContent = profile.indentStyle;
+            quoteSpan.textContent = profile.quoteStyle;
+            semicolonSpan.textContent = profile.useSemicolons ? 'Yes' : 'No';
+            confidenceSpan.textContent = profile.confidence ? 
+                \`\${profile.confidence.level} (\${profile.confidence.percentage}%)\` : 'Unknown';
+        }
+        
+        function displayGeneratedFiles(files) {
+            // Clear existing files
+            currentFiles = {};
+            
+            // Add each generated file
+            Object.entries(files).forEach(([fileName, fileData]) => {
+                const language = getLanguageFromFileName(fileName);
+                addFile(fileName, fileData.content, language);
+            });
+        }
+        
+        function getLanguageFromFileName(fileName) {
+            const ext = fileName.split('.').pop()?.toLowerCase();
+            const languageMap = {
+                js: 'javascript', jsx: 'javascript', 
+                ts: 'typescript', tsx: 'typescript',
+                py: 'python', java: 'java', 
+                cpp: 'cpp', c: 'c', cs: 'csharp',
+                php: 'php', rb: 'ruby', go: 'go', rs: 'rust',
+                vue: 'vue', svelte: 'svelte',
+                html: 'html', css: 'css', scss: 'scss', sass: 'scss',
+                json: 'json', md: 'markdown', 
+                yaml: 'yaml', yml: 'yaml',
+                xml: 'xml', sql: 'sql', sh: 'shell'
+            };
+            return languageMap[ext] || 'plaintext';
+        }
+        
+        // Initialize the interface
+        console.log('🚀 GitHub Style Agent - Enhanced UI initialized');
+        
+        // Show welcome message
+        setTimeout(() => {
+            if (Object.keys(currentFiles).length === 0) {
+                showNotification('Welcome to GitHub Style Agent! Configure your settings and start generating code.', 'info');
+            }
+        }, 1000);
     </script>
-  </body>
-  </html>
-`;
+</body>
+</html>`;
 }

@@ -46,13 +46,15 @@
     "format:check": "prettier --check .",
     "ci": "npm run lint:check && npm run type-check && npm run test",
     "dev:enhanced": "npm run build && code --extensionDevelopmentPath=.",
-    "build:monaco": "xcopy .\\node_modules\\monaco-editor\\min\\vs .\\out\\vs\\ /E /I /Y",
-    "prebuild": "npm run clean && npm run build:monaco"
+    "build:monaco": "node scripts/copy-monaco.js",
+    "prebuild": "npm run clean && npm run build:monaco",
+    "verify:monaco": "node scripts/verify-monaco.js",
+    "postbuild": "npm run verify:monaco"
   },
   "dependencies": {
     "@octokit/rest": "^20.1.1",
     "dotenv": "^16.4.5",
-    "monaco-editor": "^latest",
+    "monaco-editor": "^0.45.0",
     "openai": "^4.20.1"
   },
   "devDependencies": {
