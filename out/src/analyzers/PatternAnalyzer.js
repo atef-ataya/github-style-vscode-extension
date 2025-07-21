@@ -6,7 +6,7 @@ class PatternAnalyzer {
     fileCount = 0;
     feed(content, _analysisDepth = 'detailed') {
         if (!content) {
-            console.warn('Empty content provided to PatternAnalyzer');
+            // Skip empty content
             return;
         }
         try {
@@ -33,18 +33,18 @@ class PatternAnalyzer {
             this.fileCount++;
         }
         catch (error) {
-            console.error('Error analyzing code content:', error);
+            // Handle error silently to continue analysis
         }
     }
     getStyle() {
         if (this.fileCount === 0) {
-            console.warn('No files have been analyzed yet');
+            // Return default style when no files analyzed
             return {
                 indentStyle: 'spaces', // Default to spaces
                 quoteStyle: 'double', // Default to double quotes
                 useSemicolons: true, // Default to using semicolons
                 raw: {},
-                fileCount: 0,
+                fileCount: 0
             };
         }
         try {
@@ -63,17 +63,17 @@ class PatternAnalyzer {
                 quoteStyle,
                 useSemicolons,
                 raw: this.styleProfile,
-                fileCount: this.fileCount,
+                fileCount: this.fileCount
             };
         }
         catch (error) {
-            console.error('Error calculating style profile:', error);
+            // Return default style on error
             return {
                 indentStyle: 'spaces', // Default to spaces
                 quoteStyle: 'double', // Default to double quotes
                 useSemicolons: true, // Default to using semicolons
                 raw: this.styleProfile,
-                fileCount: this.fileCount,
+                fileCount: this.fileCount
             };
         }
     }

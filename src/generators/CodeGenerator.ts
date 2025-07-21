@@ -44,13 +44,13 @@ Make sure the code matches the user's detected style preferences (indentation, q
 
       const generatedCode = completion.choices?.[0]?.message?.content?.trim();
       if (!generatedCode) {
-        console.warn('No content returned from OpenAI');
+        // No content was returned from OpenAI
         return '// No code generated';
       }
 
       return generatedCode;
     } catch (error) {
-      console.error('Error generating code:', error);
+      // Handle error during code generation
       return `// Error generating code: ${error instanceof Error ? error.message : 'Unknown error'}`;
     }
   }

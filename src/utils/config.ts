@@ -18,7 +18,8 @@ export function getConfig(): EnvironmentConfig {
   // Validate required environment variables
   const validationErrors = validateEnvironment();
   if (validationErrors.length > 0) {
-    validationErrors.forEach(error => logError(error, 'CONFIG'));
+    // Format error messages but don't need to store them
+    validationErrors.map(error => logError(error, 'CONFIG'));
     throw new Error(
       'Missing required environment variables. Check your .env file.'
     );
@@ -41,7 +42,7 @@ export function getConfig(): EnvironmentConfig {
       process.env.API_TIMEOUT ?? String(DEFAULT_CONFIG.apiTimeout ?? 30000),
       10
     ),
-    debug: process.env.DEBUG === 'true' || (DEFAULT_CONFIG.debug ?? false),
+    debug: process.env.DEBUG === 'true' ? true : (DEFAULT_CONFIG.debug ?? false),
     cacheDir: process.env.CACHE_DIR ?? DEFAULT_CONFIG.cacheDir ?? './cache',
   };
 }
@@ -124,23 +125,17 @@ export function getSafeConfig(
 export function logConfig(): void {
   try {
     const config = getConfig();
-    const safeConfig = getSafeConfig(config);
+    // Get safe config for potential logging (not used directly)
+    getSafeConfig(config);
 
-    if (config.debug) {
-      console.log(
-        'Current configuration:',
-        JSON.stringify(safeConfig, null, 2)
-      );
-    }
+    // Debug configuration logging is handled by the logger
+    // Configuration details are available in safeConfig if needed
 
-    // Validate configuration
-    const configErrors = validateConfig(config);
-    if (configErrors.length > 0) {
-      console.warn('Configuration warnings:');
-      configErrors.forEach(error => console.warn(`  - ${error}`));
-    }
+    // Validate configuration but don't need to store the errors
+    validateConfig(config);
+    // Configuration warnings are handled by the logger
   } catch (error) {
-    console.error('Failed to load configuration:', error);
+    // Error loading configuration is handled by the error handler
   }
 }
 

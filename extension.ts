@@ -92,17 +92,17 @@ export function activate(context: vscode.ExtensionContext) {
                   );
 
                   // Send result back to webview
-                  panel.webview.postMessage({
+                  void panel.webview.postMessage({
                     command: 'showResult',
                     result: generatedCode,
                   });
                 } catch (err: any) {
-                  vscode.window.showErrorMessage(
+                  void vscode.window.showErrorMessage(
                     `CodeStyle error: ${err.message || err}`
                   );
 
                   // Also send error to the webview panel
-                  panel.webview.postMessage({
+                  void panel.webview.postMessage({
                     command: 'showError',
                     error: err.message || String(err),
                   });
@@ -135,10 +135,10 @@ export function activate(context: vscode.ExtensionContext) {
                     );
 
                     // Show success message
-                    vscode.window.showInformationMessage(
+                    void vscode.window.showInformationMessage(
                       'Code saved successfully!'
                     );
-                    panel.webview.postMessage({
+                    void panel.webview.postMessage({
                       command: 'saveSuccess',
                       message: 'Code saved successfully!',
                     });
@@ -146,10 +146,10 @@ export function activate(context: vscode.ExtensionContext) {
                 } catch (err: any) {
                   const errorMessage =
                     err instanceof Error ? err.message : String(err);
-                  vscode.window.showErrorMessage(
+                  void vscode.window.showErrorMessage(
                     `Error saving file: ${errorMessage}`
                   );
-                  panel.webview.postMessage({
+                  void panel.webview.postMessage({
                     command: 'showError',
                     error: errorMessage,
                   });
@@ -166,19 +166,19 @@ export function activate(context: vscode.ExtensionContext) {
                   await vscode.env.clipboard.writeText(message.code);
 
                   // Show success message
-                  vscode.window.showInformationMessage(
+                  void vscode.window.showInformationMessage(
                     'Code copied to clipboard!'
                   );
-                  panel.webview.postMessage({
+                  void panel.webview.postMessage({
                     command: 'copySuccess',
                   });
                 } catch (err: any) {
                   const errorMessage =
                     err instanceof Error ? err.message : String(err);
-                  vscode.window.showErrorMessage(
+                  void vscode.window.showErrorMessage(
                     `Error copying to clipboard: ${errorMessage}`
                   );
-                  panel.webview.postMessage({
+                  void panel.webview.postMessage({
                     command: 'showError',
                     error: errorMessage,
                   });
@@ -186,7 +186,8 @@ export function activate(context: vscode.ExtensionContext) {
                 break;
 
               default:
-                console.log(`Unhandled command: ${message.command}`);
+                // Ignore unhandled commands
+                break;
             }
           },
           undefined,
@@ -195,7 +196,7 @@ export function activate(context: vscode.ExtensionContext) {
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
-        vscode.window.showErrorMessage(`CodeStyle error: ${errorMessage}`);
+        void vscode.window.showErrorMessage(`CodeStyle error: ${errorMessage}`);
       }
     }
   );
@@ -203,4 +204,4 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
+export function deactivate(): void {}

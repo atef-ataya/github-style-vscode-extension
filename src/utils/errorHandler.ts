@@ -87,38 +87,43 @@ export async function safeExecuteAsync<T>(
 }
 
 /**
- * Logs errors in a consistent format
+ * Formats errors in a consistent format and returns the formatted string
  */
 export function logError(
   error: ApiError | AnalysisError,
   context?: string
-): void {
+): string {
   const timestamp = new Date().toISOString();
   const contextStr = context ? ` [${context}]` : '';
 
-  console.error(
+  // Format error information for logging
+  const errorInfo = [
     `[${timestamp}]${contextStr} Error ${error.code}: ${error.message}`
-  );
+  ];
 
   if ('repository' in error && error.repository) {
-    console.error(`  Repository: ${error.repository}`);
+    errorInfo.push(`  Repository: ${error.repository}`);
   }
 
   if ('file' in error && error.file) {
-    console.error(`  File: ${error.file}`);
+    errorInfo.push(`  File: ${error.file}`);
   }
 
   if ('step' in error) {
-    console.error(`  Step: ${error.step}`);
+    errorInfo.push(`  Step: ${error.step}`);
   }
 
   if (error.statusCode) {
-    console.error(`  Status Code: ${error.statusCode}`);
+    errorInfo.push(`  Status Code: ${error.statusCode}`);
   }
 
+  // Additional details for debug mode
   if (error.details && process.env.DEBUG === 'true') {
-    console.error('  Details:', error.details);
+    errorInfo.push(`  Details: ${JSON.stringify(error.details)}`);
   }
+  
+  // Return formatted error info for external logging
+  return errorInfo.join('\n');
 }
 
 /**

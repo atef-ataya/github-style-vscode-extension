@@ -76,15 +76,15 @@ function activate(context) {
                             // Generate final code using OpenAI + user style
                             const generatedCode = await (0, CodeStyleEngine_1.generateCodeSample)(openaiKey, patterns, spec);
                             // Send result back to webview
-                            panel.webview.postMessage({
+                            void panel.webview.postMessage({
                                 command: 'showResult',
                                 result: generatedCode,
                             });
                         }
                         catch (err) {
-                            vscode.window.showErrorMessage(`CodeStyle error: ${err.message || err}`);
+                            void vscode.window.showErrorMessage(`CodeStyle error: ${err.message || err}`);
                             // Also send error to the webview panel
-                            panel.webview.postMessage({
+                            void panel.webview.postMessage({
                                 command: 'showError',
                                 error: err.message || String(err),
                             });
@@ -110,8 +110,8 @@ function activate(context) {
                                 // Write to file
                                 await vscode.workspace.fs.writeFile(uri, Buffer.from(message.code, 'utf8'));
                                 // Show success message
-                                vscode.window.showInformationMessage('Code saved successfully!');
-                                panel.webview.postMessage({
+                                void vscode.window.showInformationMessage('Code saved successfully!');
+                                void panel.webview.postMessage({
                                     command: 'saveSuccess',
                                     message: 'Code saved successfully!',
                                 });
@@ -119,8 +119,8 @@ function activate(context) {
                         }
                         catch (err) {
                             const errorMessage = err instanceof Error ? err.message : String(err);
-                            vscode.window.showErrorMessage(`Error saving file: ${errorMessage}`);
-                            panel.webview.postMessage({
+                            void vscode.window.showErrorMessage(`Error saving file: ${errorMessage}`);
+                            void panel.webview.postMessage({
                                 command: 'showError',
                                 error: errorMessage,
                             });
@@ -134,28 +134,29 @@ function activate(context) {
                             // Copy to clipboard using vscode.env.clipboard
                             await vscode.env.clipboard.writeText(message.code);
                             // Show success message
-                            vscode.window.showInformationMessage('Code copied to clipboard!');
-                            panel.webview.postMessage({
+                            void vscode.window.showInformationMessage('Code copied to clipboard!');
+                            void panel.webview.postMessage({
                                 command: 'copySuccess',
                             });
                         }
                         catch (err) {
                             const errorMessage = err instanceof Error ? err.message : String(err);
-                            vscode.window.showErrorMessage(`Error copying to clipboard: ${errorMessage}`);
-                            panel.webview.postMessage({
+                            void vscode.window.showErrorMessage(`Error copying to clipboard: ${errorMessage}`);
+                            void panel.webview.postMessage({
                                 command: 'showError',
                                 error: errorMessage,
                             });
                         }
                         break;
                     default:
-                        console.log(`Unhandled command: ${message.command}`);
+                        // Ignore unhandled commands
+                        break;
                 }
             }, undefined, context.subscriptions);
         }
         catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            vscode.window.showErrorMessage(`CodeStyle error: ${errorMessage}`);
+            void vscode.window.showErrorMessage(`CodeStyle error: ${errorMessage}`);
         }
     });
     context.subscriptions.push(disposable);
