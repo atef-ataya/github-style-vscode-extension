@@ -41,7 +41,7 @@ export function getConfig(): EnvironmentConfig {
       process.env.API_TIMEOUT ?? String(DEFAULT_CONFIG.apiTimeout ?? 30000),
       10
     ),
-    debug: process.env.DEBUG === 'true' || DEFAULT_CONFIG.debug || false,
+    debug: process.env.DEBUG === 'true' || (DEFAULT_CONFIG.debug ?? false),
     cacheDir: process.env.CACHE_DIR ?? DEFAULT_CONFIG.cacheDir ?? './cache',
   };
 }
