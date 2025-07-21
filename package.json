@@ -38,18 +38,21 @@
     "test:unit": "node src/tests/basic.test.js",
     "test:watch": "npm run test:unit -- --watch",
     "clean": "rimraf out dist && del /q *.vsix 2>nul || echo No .vsix files to delete",
-    "prebuild": "npm run clean",
     "prepackage": "npm run build",
     "package": "vsce package",
     "package:install": "code --install-extension *.vsix",
     "dev": "npm run watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "ci": "npm run lint:check && npm run type-check && npm run test"
+    "ci": "npm run lint:check && npm run type-check && npm run test",
+    "dev:enhanced": "npm run build && code --extensionDevelopmentPath=.",
+    "build:monaco": "xcopy .\\node_modules\\monaco-editor\\min\\vs .\\out\\vs\\ /E /I /Y",
+    "prebuild": "npm run clean && npm run build:monaco"
   },
   "dependencies": {
     "@octokit/rest": "^20.1.1",
     "dotenv": "^16.4.5",
+    "monaco-editor": "^latest",
     "openai": "^4.20.1"
   },
   "devDependencies": {

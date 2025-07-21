@@ -37,6 +37,42 @@ npm install
 npm run build
 ```
 
+### **Installing Monaco Editor for Enhanced UI**
+
+To enable the enhanced UI features with Monaco Editor:
+
+**On Windows:**
+
+Using PowerShell:
+```powershell
+.\install-monaco.ps1
+npm run build
+```
+
+Using Command Prompt:
+```cmd
+install-monaco.bat
+npm run build
+```
+
+**On macOS/Linux:**
+```bash
+chmod +x install-monaco.js
+./install-monaco.js
+npm run build
+```
+
+**Using npm script (all platforms):**
+```bash
+npm run install:monaco
+npm run build
+```
+
+This will install Monaco Editor and configure your project for an enhanced development experience. 
+
+For comprehensive information about Monaco Editor integration, see the [Monaco Editor Integration Guide](./MONACO-EDITOR-GUIDE.md).
+
+
 ### **Advanced Usage with New Features**
 
 #### **1. Enhanced Analysis with Progress Tracking**
