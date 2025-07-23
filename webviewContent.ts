@@ -228,6 +228,69 @@ export function getWebviewContent(
         border: 1px solid var(--vscode-notifications-border);
         border-radius: 6px;
         padding: 12px;
+        margin-top: 16px;
+      }
+
+      .auth-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.2);
+        margin-bottom: 8px;
+      }
+
+      .auth-status.success {
+        color: #4caf50;
+      }
+
+      .auth-status.pending {
+        color: #ffc107;
+      }
+
+      .auth-status.error {
+        color: #f44336;
+      }
+
+      .repo-list {
+        margin-top: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .repo-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        margin-bottom: 4px;
+        font-size: 12px;
+        transition: transform 0.3s ease;
+      }
+
+      .repo-item.analyzed {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      .repo-progress {
+        color: var(--vscode-textLink-foreground);
+      }
+
+      .cache-section {
+        margin-top: 16px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+      }
+
+      .cache-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
       }
 
       .progress-bar {
@@ -551,6 +614,14 @@ export function getWebviewContent(
         <div class="config-panel">
             <!-- GitHub Analysis Section -->
             <div class="config-section">
+                <div id="githubAuthStatus" class="auth-status pending">
+                    <span>GitHub Authentication</span>
+                    <span id="githubAuthIcon">⏳</span>
+                </div>
+                <div id="openaiAuthStatus" class="auth-status pending">
+                    <span>OpenAI Authentication</span>
+                    <span id="openaiAuthIcon">⏳</span>
+                </div>
                 <h3>🔍 GitHub Style Analysis</h3>
                 
                 <div class="form-group">
@@ -671,6 +742,27 @@ export function getWebviewContent(
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 <div class="progress-text" id="progressText">Ready to analyze...</div>
+                
+                <!-- Repository Analysis List -->
+                <div id="repoList" class="repo-list" style="display: none;">
+                    <!-- Repository items will be added here dynamically -->
+                </div>
+            </div>
+            
+            <!-- Style Cache Section -->
+            <div class="config-section cache-section" id="cacheSection" style="display: none;">
+                <h3>📦 Style Cache</h3>
+                <div class="style-profile">
+                    <!-- Style profile details will be added here -->
+                </div>
+                <div class="cache-actions">
+                    <button class="action-btn" onclick="clearStyleCache()">
+                        🗑️ Clear Cache
+                    </button>
+                    <button class="action-btn" onclick="exportStyleProfile()">
+                        💾 Export Style
+                    </button>
+                </div>
             </div>
             
             <!-- Generate Button -->
@@ -1078,13 +1170,125 @@ export function getWebviewContent(
             }, type === 'error' ? 5000 : 3000);
         }
         
+        // Types for message handling
+        type AuthStatus = 'success' | 'error' | 'pending';
+        type AuthType = 'github' | 'openai';
+
+        // Authentication status management
+        function updateAuthStatus(type: AuthType, status: AuthStatus, message?: string) {
+            const element = document.getElementById(type + 'AuthStatus');
+            const icon = document.getElementById(type + 'AuthIcon');
+            
+            if (!element || !icon) return;
+            
+            element.className = 'auth-status ' + status;
+            switch (status) {
+                case 'success':
+                    icon.textContent = '✅';
+                    break;
+                case 'error':
+                    icon.textContent = '❌';
+                    break;
+                case 'pending':
+                    icon.textContent = '⏳';
+                    break;
+            }
+            
+            if (message) {
+                showNotification(message, status === 'error' ? 'error' : 'info');
+            }
+        }
+
+        // Repository analysis management
+        function addRepoToList(repoName: string) {
+            const repoList = document.getElementById('repoList');
+            if (!repoList) return;
+            
+            repoList.style.display = 'block';
+            
+            const repoItem = document.createElement('div');
+            repoItem.className = 'repo-item';
+            repoItem.id = 'repo-' + repoName;
+            repoItem.innerHTML = 
+                '<span>' + repoName + '</span>' +
+                '<span class="repo-progress">0%</span>';
+            
+            repoList.appendChild(repoItem);
+        }
+
+        function updateRepoProgress(repoName: string, progress: number) {
+            const repoItem = document.getElementById('repo-' + repoName);
+            if (!repoItem) return;
+            
+            const progressElement = repoItem.querySelector('.repo-progress');
+            if (!progressElement) return;
+            
+            progressElement.textContent = progress + '%';
+            
+            if (progress === 100) {
+                repoItem.classList.add('analyzed');
+                setTimeout(() => repoItem.remove(), 500);
+            }
+        }
+
+        // Style cache management
+        interface StyleProfileData {
+            indentStyle: string;
+            indentSize: number;
+            quoteStyle: string;
+            useSemicolons: boolean;
+            fileCount: number;
+            reposAnalyzed?: number;
+        }
+
+        function updateStyleProfile(profile: StyleProfileData) {
+            const styleProfile = document.getElementById('styleProfile');
+            const cacheSection = document.getElementById('cacheSection');
+            
+            if (!styleProfile || !cacheSection) return;
+            
+            cacheSection.style.display = 'block';
+            styleProfile.innerHTML = 
+                '<div class="style-item">' +
+                    '<span>Indentation:</span>' +
+                    '<span class="style-value">' + profile.indentStyle + ' (' + (profile.indentSize || 2) + ')</span>' +
+                '</div>' +
+                '<div class="style-item">' +
+                    '<span>Quotes:</span>' +
+                    '<span class="style-value">' + profile.quoteStyle + '</span>' +
+                '</div>' +
+                '<div class="style-item">' +
+                    '<span>Semicolons:</span>' +
+                    '<span class="style-value">' + (profile.useSemicolons ? 'Yes' : 'No') + '</span>' +
+                '</div>' +
+                '<div class="style-item">' +
+                    '<span>Files Analyzed:</span>' +
+                    '<span class="style-value">' + profile.fileCount + '</span>' +
+                '</div>' +
+                (profile.reposAnalyzed ? 
+                    '<div class="style-item">' +
+                        '<span>Repositories Analyzed:</span>' +
+                        '<span class="style-value">' + profile.reposAnalyzed + '</span>' +
+                    '</div>' : '');
+        }
+
+        function clearStyleCache() {
+            vscode.postMessage({ command: 'clearStyleCache' });
+            document.getElementById('cacheSection').style.display = 'none';
+            showNotification('Style cache cleared', 'info');
+        }
+
+        function exportStyleProfile() {
+            vscode.postMessage({ command: 'exportStyleProfile' });
+        }
+
         // Main generation function
         async function startGeneration() {
             const token = document.getElementById('githubToken').value.trim();
             const username = document.getElementById('githubUsername').value.trim();
             const openaiKey = document.getElementById('openaiKey').value.trim();
             const codeSpec = document.getElementById('codeSpec').value.trim();
-            const maxRepos = parseInt(document.getElementById('maxRepos').value) || 20;
+            const maxRepos = parseInt(document.getElementById('maxRepos').value) || 10;
             
             // Validation
             if (!token || !username || !openaiKey || !codeSpec) {
@@ -1098,6 +1302,13 @@ export function getWebviewContent(
             btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
             
             try {
+                // Reset UI state
+                document.getElementById('repoList').innerHTML = '';
+                document.getElementById('repoList').style.display = 'none';
+                document.getElementById('cacheSection').style.display = 'none';
+                updateAuthStatus('github', 'pending');
+                updateAuthStatus('openai', 'pending');
+                
                 // Clear previous files
                 Object.keys(currentFiles).forEach(fileName => {
                     if (monacoEditor) {
@@ -1133,6 +1344,8 @@ export function getWebviewContent(
             } catch (error) {
                 showNotification('Failed to start generation: ' + error.message, 'error');
                 resetGenerateButton();
+                updateAuthStatus('github', 'error');
+                updateAuthStatus('openai', 'error');
             }
         }
         
@@ -1192,18 +1405,109 @@ export function getWebviewContent(
             });
         }
         
+        // Message types
+        interface AuthStatusMessage {
+            command: 'authStatus';
+            service: AuthType;
+            status: AuthStatus;
+            message?: string;
+        }
+
+        interface RepoAnalysisMessage {
+            command: 'repoAnalysis';
+            type: 'start' | 'progress';
+            repoName: string;
+            progress?: number;
+        }
+
+        interface StyleProfileMessage {
+            command: 'styleProfile';
+            profile: StyleProfileData;
+        }
+
+        interface GenerationCompleteMessage {
+            command: 'generationComplete';
+            success: boolean;
+            error?: string;
+        }
+
+        interface ShowProgressMessage {
+            command: 'showProgress';
+            progress: number;
+            message: string;
+        }
+
+        interface ShowStyleProfileMessage {
+            command: 'showStyleProfile';
+            profile: StyleProfileData;
+        }
+
+        interface ShowGeneratedFilesMessage {
+            command: 'showGeneratedFiles';
+            files: Record<string, GeneratedFile>;
+        }
+
+        interface ShowErrorMessage {
+            command: 'showError';
+            error: string;
+        }
+
+        interface SaveSuccessMessage {
+            command: 'saveSuccess';
+        }
+
+        interface CopySuccessMessage {
+            command: 'copySuccess';
+        }
+
+        type ExtensionMessage =
+            | AuthStatusMessage
+            | RepoAnalysisMessage
+            | StyleProfileMessage
+            | GenerationCompleteMessage
+            | ShowProgressMessage
+            | ShowStyleProfileMessage
+            | ShowGeneratedFilesMessage
+            | ShowErrorMessage
+            | SaveSuccessMessage
+            | CopySuccessMessage;
+
         // Message handling from extension
-        window.addEventListener('message', event => {
+        window.addEventListener('message', (event: MessageEvent<ExtensionMessage>) => {
             const message = event.data;
             
             switch (message.command) {
+                case 'authStatus':
+                    updateAuthStatus(message.service, message.status, message.message);
+                    break;
+                    
+                case 'repoAnalysis':
+                    if (message.type === 'start') {
+                        addRepoToList(message.repoName);
+                    } else if (message.type === 'progress' && typeof message.progress === 'number') {
+                        updateRepoProgress(message.repoName, message.progress);
+                    }
+                    break;
+                    
+                case 'styleProfile':
+                    updateStyleProfile(message.profile);
+                    break;
+                    
+                case 'generationComplete':
+                    resetGenerateButton();
+                    if (message.success) {
+                        showNotification('Code generation completed successfully!', 'info');
+                    } else {
+                        showNotification('Code generation failed: ' + (message.error || 'Unknown error'), 'error');
+                    }
+                    break;
+                    
                 case 'showProgress':
                     updateProgress(message.progress, message.message);
                     break;
                     
                 case 'showStyleProfile':
-                    styleProfile = message.profile;
-                    displayStyleProfile(message.profile);
+                    updateStyleProfile(message.profile);
                     break;
                     
                 case 'showGeneratedFiles':
@@ -1227,7 +1531,7 @@ export function getWebviewContent(
             }
         });
         
-        function displayStyleProfile(profile) {
+        function displayStyleProfile(profile: StyleProfileData) {
             const profileDiv = document.getElementById('styleProfile');
             const indentSpan = document.getElementById('indentStyle');
             const quoteSpan = document.getElementById('quoteStyle');
@@ -1242,7 +1546,12 @@ export function getWebviewContent(
                 \`\${profile.confidence.level} (\${profile.confidence.percentage}%)\` : 'Unknown';
         }
         
-        function displayGeneratedFiles(files) {
+        interface GeneratedFile {
+            content: string;
+            language: string;
+        }
+
+        function displayGeneratedFiles(files: Record<string, GeneratedFile>) {
             // Clear existing files
             currentFiles = {};
             
@@ -1263,7 +1572,7 @@ export function getWebviewContent(
             }
         }
         
-        function getLanguageFromFileName(fileName) {
+        function getLanguageFromFileName(fileName: string): string {
             const ext = fileName.split('.').pop()?.toLowerCase();
             const languageMap = {
                 js: 'javascript', jsx: 'javascript', 

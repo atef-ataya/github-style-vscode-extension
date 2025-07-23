@@ -8,6 +8,9 @@ src/**
 **/.eslintrc.json
 **/*.vsix
 node_modules/**
+!node_modules/@octokit/**
+!node_modules/openai/**
+!node_modules/dotenv/**
 *.vsix
 .env
 .env.*

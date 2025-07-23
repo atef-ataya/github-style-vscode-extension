@@ -17,7 +17,7 @@
   "activationEvents": [
     "onCommand:codestyle.generate"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -27,7 +27,7 @@
     ]
   },
   "scripts": {
-    "build": "tsc -p ./",
+    "build": "webpack --config webpack.config.js",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "tsc": "tsc --noEmit",
@@ -40,7 +40,7 @@
     "clean": "rimraf out dist && del /q *.vsix 2>nul || echo No .vsix files to delete",
     "prepackage": "npm run build",
     "package": "vsce package",
-    "package:install": "code --install-extension *.vsix",
+    "package:install": "code --install-extension codestyle-stylegen-0.0.1.vsix",
     "dev": "npm run watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -52,12 +52,13 @@
     "postbuild": "npm run verify:monaco"
   },
   "dependencies": {
-    "@octokit/rest": "^20.1.1",
+    "@octokit/rest": "^20.1.2",
     "dotenv": "^16.4.5",
     "monaco-editor": "^0.45.0",
     "openai": "^4.20.1"
   },
   "devDependencies": {
+    "@types/jquery": "^3.5.32",
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -67,7 +68,10 @@
     "eslint-plugin-security": "^1.7.1",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.5",
+    "ts-loader": "^9.5.2",
     "typescript": "^5.3.3",
-    "vsce": "^2.15.0"
+    "vsce": "^2.15.0",
+    "webpack": "^5.100.2",
+    "webpack-cli": "^6.0.1"
   }
 }

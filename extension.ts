@@ -2,6 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import * as vscode from 'vscode';
+import { Octokit } from '@octokit/rest';
+import OpenAI from 'openai';
 
 import { getWebviewContent } from './webviewContent';
 import {
@@ -184,12 +186,81 @@ async function handleEnhancedGeneration(
   panel: vscode.WebviewPanel
 ): Promise<void> {
   try {
+    // Verify GitHub authentication
+    void panel.webview.postMessage({
+      command: 'authStatus',
+      service: 'github',
+      status: 'pending',
+      message: 'Verifying GitHub token...',
+    });
+
+    // Test GitHub token
+    try {
+      const octokit = new Octokit({ auth: message.token });
+      await octokit.users.getAuthenticated();
+
+      void panel.webview.postMessage({
+        command: 'authStatus',
+        service: 'github',
+        status: 'success',
+        message: 'GitHub authentication successful',
+      });
+    } catch (error) {
+      void panel.webview.postMessage({
+        command: 'authStatus',
+        service: 'github',
+        status: 'error',
+        message: 'GitHub authentication failed',
+      });
+      throw new Error('GitHub authentication failed');
+    }
+
+    // Verify OpenAI authentication
+    void panel.webview.postMessage({
+      command: 'authStatus',
+      service: 'openai',
+      status: 'pending',
+      message: 'Verifying OpenAI API key...',
+    });
+
+    try {
+      const openai = new OpenAI({ apiKey: message.openaiKey });
+      await openai.models.list();
+
+      void panel.webview.postMessage({
+        command: 'authStatus',
+        service: 'openai',
+        status: 'success',
+        message: 'OpenAI authentication successful',
+      });
+    } catch (error) {
+      void panel.webview.postMessage({
+        command: 'authStatus',
+        service: 'openai',
+        status: 'error',
+        message: 'OpenAI authentication failed',
+      });
+      throw new Error('OpenAI authentication failed');
+    }
+
     // Send progress update
+    void panel.webview.postMessage({
+      command: 'showProgress',
+      progress: 5,
+      message: 'Initializing...',
+    });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     void panel.webview.postMessage({
       command: 'showProgress',
       progress: 10,
       message: 'Connecting to GitHub API...',
     });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Analyze repositories
     void panel.webview.postMessage({
@@ -197,7 +268,47 @@ async function handleEnhancedGeneration(
       progress: 20,
       message: 'Analyzing your coding style...',
     });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
 
+    // Update progress before starting analysis
+    void panel.webview.postMessage({
+      command: 'showProgress',
+      progress: 30,
+      message: 'Fetching repositories from GitHub...',
+    });
+    
+    // Initialize Octokit and fetch repositories
+    const octokit = new Octokit({ auth: message.token });
+    const { data: repos } = await octokit.repos.listForUser({
+      username: message.username,
+      per_page: message.maxRepos,
+    });
+
+    if (repos.length === 0) {
+      throw new Error('No repositories found for the user');
+    }
+
+    // Analyze each repository
+    let analyzedRepos = 0;
+    for (const repo of repos) {
+      void panel.webview.postMessage({
+        command: 'repoAnalysis',
+        type: 'start',
+        repoName: repo.name,
+      });
+
+      analyzedRepos++;
+      const progress = Math.round((analyzedRepos / repos.length) * 100);
+      void panel.webview.postMessage({
+        command: 'repoAnalysis',
+        type: 'progress',
+        repoName: repo.name,
+        progress,
+      });
+    }
+    
     const styleProfile = await analyzeMultipleReposPatterns(
       message.token,
       message.username,
@@ -205,18 +316,52 @@ async function handleEnhancedGeneration(
       'detailed'
     );
 
+    // Update progress after analysis
+    void panel.webview.postMessage({
+      command: 'showProgress',
+      progress: 50,
+      message: 'Analysis complete! Processing style patterns...',
+    });
+
+    void panel.webview.postMessage({
+      command: 'styleProfile',
+      profile: {
+        ...styleProfile,
+        reposAnalyzed: analyzedRepos
+      }
+    });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     // Send style profile to UI
     void panel.webview.postMessage({
       command: 'showStyleProfile',
       profile: styleProfile,
     });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     void panel.webview.postMessage({
       command: 'showProgress',
       progress: 60,
       message: 'Generating project files...',
     });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
 
+    // Update progress before generating files
+    void panel.webview.postMessage({
+      command: 'showProgress',
+      progress: 70,
+      message: 'Creating project structure...',
+    });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     // Generate multiple files based on template
     const projectFiles = await generateProjectFiles(
       message.openaiKey,
@@ -224,18 +369,40 @@ async function handleEnhancedGeneration(
       message.spec,
       message.options
     );
+    
+    // Update progress before finalizing
+    void panel.webview.postMessage({
+      command: 'showProgress',
+      progress: 90,
+      message: 'Finalizing code generation...',
+    });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     void panel.webview.postMessage({
       command: 'showProgress',
       progress: 100,
       message: 'Generation complete!',
     });
+    
+    // Small delay to ensure UI updates
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Send generated files to UI
     void panel.webview.postMessage({
       command: 'showGeneratedFiles',
       files: projectFiles,
     });
+    
+    // Send completion status
+    void panel.webview.postMessage({
+      command: 'generationComplete',
+      success: true
+    });
+    
+    // Show notification in VS Code
+    void vscode.window.showInformationMessage('CodeStyle: Code generation completed successfully!');
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     void panel.webview.postMessage({
