@@ -243,9 +243,10 @@ async function handleEnhancedGeneration(
       throw new Error('OpenAI authentication failed');
     }
 
-    // Send progress update
+    // Send progress update with stage information
     void panel.webview.postMessage({
       command: 'showProgress',
+      stage: 'Initialization',
       progress: 5,
       message: 'Initializing...',
     });
@@ -255,6 +256,7 @@ async function handleEnhancedGeneration(
     
     void panel.webview.postMessage({
       command: 'showProgress',
+      stage: 'Connection',
       progress: 10,
       message: 'Connecting to GitHub API...',
     });
@@ -265,6 +267,7 @@ async function handleEnhancedGeneration(
     // Analyze repositories
     void panel.webview.postMessage({
       command: 'showProgress',
+      stage: 'Analysis',
       progress: 20,
       message: 'Analyzing your coding style...',
     });
@@ -275,6 +278,7 @@ async function handleEnhancedGeneration(
     // Update progress before starting analysis
     void panel.webview.postMessage({
       command: 'showProgress',
+      stage: 'Repository Fetch',
       progress: 30,
       message: 'Fetching repositories from GitHub...',
     });

@@ -735,13 +735,15 @@ export function getWebviewContent(
                 </div>
             </div>
             
-            <!-- Progress Section -->
-            <div class="config-section progress-section" id="progressSection" style="display: none;">
-                <h3>⚡ Progress</h3>
+            <!-- Enhanced Progress Section -->
+            <div class="config-section progress-section" id="progressContainer" style="display: none;">
+                <h3>⚡ Analysis Progress</h3>
+                <div id="progressStage" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--vscode-textLink-foreground);">Initializing...</div>
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+                    <div class="progress-fill" id="progressBar"></div>
                 </div>
                 <div class="progress-text" id="progressText">Ready to analyze...</div>
+                <div id="progressTime" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 4px;"></div>
                 
                 <!-- Repository Analysis List -->
                 <div id="repoList" class="repo-list" style="display: none;">
@@ -1142,19 +1144,17 @@ export function getWebviewContent(
             \`;
         }
         
-        // Progress management
-        function updateProgress(progress, message) {
-            const section = document.getElementById('progressSection');
-            const fill = document.getElementById('progressFill');
+        // Legacy progress management for backward compatibility
+        function updateProgressLegacy(progress, message) {
+            const section = document.getElementById('progressContainer');
+            const fill = document.getElementById('progressBar');
             const text = document.getElementById('progressText');
             
-            section.style.display = 'block';
-            fill.style.width = progress + '%';
-            text.textContent = message;
-        }
-        
-        function hideProgress() {
-            document.getElementById('progressSection').style.display = 'none';
+            if (section && fill && text) {
+                section.style.display = 'block';
+                fill.style.width = progress + '%';
+                text.textContent = message;
+            }
         }
         
         // Notification system
@@ -1282,72 +1282,88 @@ export function getWebviewContent(
             vscode.postMessage({ command: 'exportStyleProfile' });
         }
 
-        // Main generation function
-        async function startGeneration() {
-            const token = document.getElementById('githubToken').value.trim();
-            const username = document.getElementById('githubUsername').value.trim();
-            const openaiKey = document.getElementById('openaiKey').value.trim();
-            const codeSpec = document.getElementById('codeSpec').value.trim();
-            const maxRepos = parseInt(document.getElementById('maxRepos').value) || 10;
-            
-            // Validation
-            if (!token || !username || !openaiKey || !codeSpec) {
-                showNotification('Please fill in all required fields', 'error');
-                return;
-            }
-            
-            // Disable button and show progress
+        // Button state management
+        function resetGenerateButton() {
             const btn = document.getElementById('generateBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Analyze & Generate';
+            }
+        }
+
+        function setGenerateButtonState(text: string, disabled: boolean = true) {
+            const btn = document.getElementById('generateBtn');
+            if (btn) {
+                btn.disabled = disabled;
+                btn.innerHTML = disabled ? '<span class="loading-spinner"></span> ' + text : '🚀 ' + text;
+            }
+        }
+
+        // Main generation function with enhanced debugging
+        async function startGeneration() {
+            console.log('🚀 startGeneration called');
             
             try {
-                // Reset UI state
-                document.getElementById('repoList').innerHTML = '';
-                document.getElementById('repoList').style.display = 'none';
-                document.getElementById('cacheSection').style.display = 'none';
-                updateAuthStatus('github', 'pending');
-                updateAuthStatus('openai', 'pending');
+                const token = document.getElementById('githubToken')?.value?.trim();
+                const username = document.getElementById('githubUsername')?.value?.trim();
+                const openaiKey = document.getElementById('openaiKey')?.value?.trim();
+                const codeSpec = document.getElementById('codeSpec')?.value?.trim();
+                const maxRepos = parseInt(document.getElementById('maxRepos')?.value) || 10;
                 
-                // Clear previous files
-                Object.keys(currentFiles).forEach(fileName => {
-                    if (monacoEditor) {
-                        monacoEditor.dispose();
-                        monacoEditor = null;
-                    }
-                });
-                currentFiles = {};
-                activeFile = null;
-                updateFileTabs();
-                showWelcomeScreen();
-                hideCodeActions();
+                console.log('Form values:', { token: token ? '***' : 'empty', username, openaiKey: openaiKey ? '***' : 'empty', codeSpec: codeSpec ? 'provided' : 'empty', maxRepos });
+                
+                // Validation
+                if (!token || !username || !openaiKey || !codeSpec) {
+                    console.log('❌ Validation failed - missing required fields');
+                    showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
+                
+                console.log('✅ Validation passed, starting generation...');
+                
+                // Enhanced button state management
+                const btn = document.getElementById('generateBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="loading-spinner"></span> Initializing Analysis...';
+                    console.log('✅ Button state updated');
+                } else {
+                    console.error('❌ Generate button not found!');
+                }
+                
+                // Show progress container
+                updateProgress('Authentication', 5, 'Verifying credentials...');
+                console.log('✅ Progress updated');
                 
                 // Send message to extension
+                console.log('📤 Sending message to extension...');
                 vscode.postMessage({
                     command: 'analyzeAndGenerate',
                     token,
-                    openaiKey,
                     username,
-                    spec: codeSpec,
+                    openaiKey,
+                    codeSpec,
                     maxRepos,
-                    options: {
-                        model: document.getElementById('aiModel').value,
-                        complexity: document.getElementById('complexity').value,
-                        includeTests: document.getElementById('includeTests').checked,
-                        includeComments: document.getElementById('includeComments').checked,
-                        template: document.getElementById('projectTemplate').value,
-                        useTypeScript: document.getElementById('useTypeScript').checked,
-                        initGit: document.getElementById('initGit').checked
-                    }
+                    includeComments: document.getElementById('includeComments')?.checked || false,
+                    includeDocstrings: document.getElementById('includeDocstrings')?.checked || false,
+                    includeVariableNames: document.getElementById('includeVariableNames')?.checked || false,
+                    includeFileStructure: document.getElementById('includeFileStructure')?.checked || false,
+                    includeCommitMessages: document.getElementById('includeCommitMessages')?.checked || false,
+                    includeReadmes: document.getElementById('includeReadmes')?.checked || false,
+                    outputFormat: document.getElementById('outputFormat')?.value || 'typescript',
+                    complexity: document.getElementById('complexity')?.value || 'medium',
+                    codeStyle: document.getElementById('codeStyle')?.value || 'clean',
+                    includeTests: document.getElementById('includeTests')?.checked || false
                 });
+                console.log('✅ Message sent to extension');
                 
             } catch (error) {
-                showNotification('Failed to start generation: ' + error.message, 'error');
+                console.error('❌ Error in startGeneration:', error);
+                showNotification('An error occurred: ' + error.message, 'error');
                 resetGenerateButton();
-                updateAuthStatus('github', 'error');
-                updateAuthStatus('openai', 'error');
             }
         }
+
         
         function resetGenerateButton() {
             const btn = document.getElementById('generateBtn');
@@ -1405,7 +1421,7 @@ export function getWebviewContent(
             });
         }
         
-        // Message types
+        // Enhanced Message types
         interface AuthStatusMessage {
             command: 'authStatus';
             service: AuthType;
@@ -1413,11 +1429,22 @@ export function getWebviewContent(
             message?: string;
         }
 
+        interface ShowProgressMessage {
+            command: 'showProgress';
+            stage: string;
+            progress: number;
+            message: string;
+            timeElapsed?: number;
+            estimatedRemaining?: number;
+        }
+
         interface RepoAnalysisMessage {
             command: 'repoAnalysis';
-            type: 'start' | 'progress';
-            repoName: string;
+            type: 'start' | 'progress' | 'complete';
+            repoName?: string;
             progress?: number;
+            totalRepos?: number;
+            currentRepo?: number;
         }
 
         interface StyleProfileMessage {
@@ -1429,12 +1456,6 @@ export function getWebviewContent(
             command: 'generationComplete';
             success: boolean;
             error?: string;
-        }
-
-        interface ShowProgressMessage {
-            command: 'showProgress';
-            progress: number;
-            message: string;
         }
 
         interface ShowStyleProfileMessage {
@@ -1454,10 +1475,12 @@ export function getWebviewContent(
 
         interface SaveSuccessMessage {
             command: 'saveSuccess';
+            message?: string;
         }
 
         interface CopySuccessMessage {
             command: 'copySuccess';
+            message?: string;
         }
 
         type ExtensionMessage =
@@ -1472,7 +1495,12 @@ export function getWebviewContent(
             | SaveSuccessMessage
             | CopySuccessMessage;
 
-        // Message handling from extension
+        // Enhanced Message handling with progress tracking
+        let analysisStartTime = 0;
+        let currentStage = '';
+        let totalRepositories = 0;
+        let completedRepositories = 0;
+
         window.addEventListener('message', (event: MessageEvent<ExtensionMessage>) => {
             const message = event.data;
             
@@ -1482,11 +1510,7 @@ export function getWebviewContent(
                     break;
                     
                 case 'repoAnalysis':
-                    if (message.type === 'start') {
-                        addRepoToList(message.repoName);
-                    } else if (message.type === 'progress' && typeof message.progress === 'number') {
-                        updateRepoProgress(message.repoName, message.progress);
-                    }
+                    handleRepoAnalysis(message);
                     break;
                     
                 case 'styleProfile':
@@ -1494,6 +1518,7 @@ export function getWebviewContent(
                     break;
                     
                 case 'generationComplete':
+                    hideProgress();
                     resetGenerateButton();
                     if (message.success) {
                         showNotification('Code generation completed successfully!', 'info');
@@ -1503,7 +1528,7 @@ export function getWebviewContent(
                     break;
                     
                 case 'showProgress':
-                    updateProgress(message.progress, message.message);
+                    updateProgress(message.stage, message.progress, message.message, message.timeElapsed, message.estimatedRemaining);
                     break;
                     
                 case 'showStyleProfile':
@@ -1512,24 +1537,99 @@ export function getWebviewContent(
                     
                 case 'showGeneratedFiles':
                     displayGeneratedFiles(message.files);
+                    hideProgress();
                     resetGenerateButton();
                     showNotification('Code generation completed!', 'success');
                     break;
                     
                 case 'showError':
                     showNotification(message.error, 'error');
+                    hideProgress();
                     resetGenerateButton();
                     break;
                     
                 case 'saveSuccess':
-                    showNotification('Project saved successfully!', 'success');
+                    showNotification(message.message || 'Project saved successfully!', 'success');
                     break;
                     
                 case 'copySuccess':
-                    showNotification('Code copied to clipboard!', 'success');
+                    showNotification(message.message || 'Code copied to clipboard!', 'success');
                     break;
             }
         });
+
+        function handleRepoAnalysis(message: RepoAnalysisMessage) {
+            switch (message.type) {
+                case 'start':
+                    if (message.repoName) {
+                        addRepoToList(message.repoName);
+                    }
+                    if (message.totalRepos) {
+                        totalRepositories = message.totalRepos;
+                        analysisStartTime = Date.now();
+                        updateProgress('Repository Analysis', 10, 'Starting repository analysis...');
+                    }
+                    break;
+                case 'progress':
+                    if (message.repoName && message.progress !== undefined) {
+                        updateRepoProgress(message.repoName, message.progress);
+                        if (message.progress === 100) {
+                            completedRepositories++;
+                            const overallProgress = 10 + (completedRepositories / totalRepositories) * 60;
+                            updateProgress('Repository Analysis', Math.round(overallProgress), 
+                                'Analyzed ' + completedRepositories + ' of ' + totalRepositories + ' repositories');
+                        }
+                    }
+                    break;
+                case 'complete':
+                    updateProgress('Generating Code', 80, 'Creating project files based on analyzed patterns...');
+                    break;
+            }
+        }
+
+        function updateProgress(stage: string, progress: number, message: string, timeElapsed?: number, estimatedRemaining?: number) {
+            currentStage = stage;
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progressStage = document.getElementById('progressStage');
+            const progressTime = document.getElementById('progressTime');
+            
+            if (!progressContainer || !progressBar || !progressText || !progressStage) return;
+            
+            progressContainer.style.display = 'block';
+            progressBar.style.width = progress + '%';
+            progressText.textContent = message;
+            progressStage.textContent = stage;
+            
+            if (progressTime && (timeElapsed || estimatedRemaining)) {
+                let timeText = '';
+                if (timeElapsed) {
+                    timeText += 'Elapsed: ' + formatTime(timeElapsed);
+                }
+                if (estimatedRemaining) {
+                    if (timeText) timeText += ' | ';
+                    timeText += 'Remaining: ' + formatTime(estimatedRemaining);
+                }
+                progressTime.textContent = timeText;
+            }
+        }
+
+        function formatTime(seconds: number): string {
+            if (seconds < 60) {
+                return seconds + 's';
+            }
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return minutes + 'm ' + remainingSeconds + 's';
+        }
+
+        function hideProgress() {
+            const progressContainer = document.getElementById('progressContainer');
+            if (progressContainer) {
+                progressContainer.style.display = 'none';
+            }
+        }
         
         function displayStyleProfile(profile: StyleProfileData) {
             const profileDiv = document.getElementById('styleProfile');
@@ -1552,6 +1652,15 @@ export function getWebviewContent(
         }
 
         function displayGeneratedFiles(files: Record<string, GeneratedFile>) {
+            console.log('📁 Displaying generated files:', files);
+            
+            // Validate files parameter
+            if (!files || typeof files !== 'object') {
+                console.error('❌ Invalid files parameter:', files);
+                showNotification('Error: Invalid files data received', 'error');
+                return;
+            }
+            
             // Clear existing files
             currentFiles = {};
             
@@ -1559,22 +1668,41 @@ export function getWebviewContent(
             hideWelcomeScreen();
             showCodeActions();
             
-            // Add each generated file
-            Object.entries(files).forEach(([fileName, fileData]) => {
-                const language = getLanguageFromFileName(fileName);
-                addFile(fileName, fileData.content, language);
-            });
-            
-            // Switch to the first file
-            const firstFile = Object.keys(files)[0];
-            if (firstFile) {
-                switchToFile(firstFile);
+            // Add each generated file with error handling
+            try {
+                Object.entries(files).forEach(([fileName, fileData]) => {
+                    if (fileName && fileData && fileData.content) {
+                        const language = getLanguageFromFileName(fileName);
+                        addFile(fileName, fileData.content, language);
+                        console.log('✅ Added file:', fileName);
+                    } else {
+                        console.warn('⚠️ Skipping invalid file:', fileName, fileData);
+                    }
+                });
+                
+                // Switch to the first file
+                const fileNames = Object.keys(files);
+                const firstFile = fileNames && fileNames.length > 0 ? fileNames[0] : null;
+                if (firstFile) {
+                    switchToFile(firstFile);
+                    console.log('✅ Switched to first file:', firstFile);
+                }
+            } catch (error) {
+                console.error('❌ Error processing files:', error);
+                showNotification('Error processing generated files: ' + error.message, 'error');
             }
         }
         
         function getLanguageFromFileName(fileName: string): string {
-            const ext = fileName.split('.').pop()?.toLowerCase();
-            const languageMap = {
+            if (!fileName || typeof fileName !== 'string') {
+                console.warn('⚠️ Invalid fileName for language detection:', fileName);
+                return 'plaintext';
+            }
+            
+            const parts = fileName.split('.');
+            const ext = parts && parts.length > 1 ? parts.pop()?.toLowerCase() : null;
+            
+            const languageMap: Record<string, string> = {
                 js: 'javascript', jsx: 'javascript', 
                 ts: 'typescript', tsx: 'typescript',
                 py: 'python', java: 'java', 
@@ -1586,7 +1714,8 @@ export function getWebviewContent(
                 yaml: 'yaml', yml: 'yaml',
                 xml: 'xml', sql: 'sql', sh: 'shell'
             };
-            return languageMap[ext] || 'plaintext';
+            
+            return ext && languageMap[ext] ? languageMap[ext] : 'plaintext';
         }
         
         // Initialize the interface
