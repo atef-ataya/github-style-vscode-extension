@@ -110,11 +110,20 @@ export function activate(context: vscode.ExtensionContext): void {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [
+              vscode.Uri.joinPath(context.extensionUri, 'out'),
               vscode.Uri.joinPath(context.extensionUri, 'node_modules'),
               context.extensionUri,
             ],
           }
         );
+
+        // Log extension URI and resource roots for debugging
+        console.log('Extension URI:', context.extensionUri.fsPath);
+        console.log('Resource Roots:', [
+          vscode.Uri.joinPath(context.extensionUri, 'out').fsPath,
+          vscode.Uri.joinPath(context.extensionUri, 'node_modules').fsPath,
+          context.extensionUri.fsPath,
+        ]);
 
         panel.webview.html = getWebviewContent(
           panel.webview,

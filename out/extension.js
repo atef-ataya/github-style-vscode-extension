@@ -103,10 +103,18 @@ function activate(context) {
                 enableScripts: true,
                 retainContextWhenHidden: true,
                 localResourceRoots: [
+                    vscode.Uri.joinPath(context.extensionUri, 'out'),
                     vscode.Uri.joinPath(context.extensionUri, 'node_modules'),
                     context.extensionUri,
                 ],
             });
+            // Log extension URI and resource roots for debugging
+            console.log('Extension URI:', context.extensionUri.fsPath);
+            console.log('Resource Roots:', [
+                vscode.Uri.joinPath(context.extensionUri, 'out').fsPath,
+                vscode.Uri.joinPath(context.extensionUri, 'node_modules').fsPath,
+                context.extensionUri.fsPath,
+            ]);
             panel.webview.html = (0, webviewContent_1.getWebviewContent)(panel.webview, context.extensionUri);
             panel.onDidDispose(() => {
                 // Cleanup if needed

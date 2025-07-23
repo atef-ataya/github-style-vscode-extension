@@ -30,7 +30,7 @@ function copyRecursiveSync(src, dest) {
 function copyMonacoFiles() {
   console.log('📦 Copying Monaco Editor files...');
   
-  const monacoSrc = './node_modules/monaco-editor/min';
+  const monacoSrc = './node_modules/monaco-editor/dev';
   const monacoDest = './out';
   
   if (!fs.existsSync(monacoSrc)) {

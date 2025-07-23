@@ -59,7 +59,8 @@ function getWebviewContent(webview, extensionUri) {
           script-src 'nonce-${nonce}' ${webview.cspSource} 'unsafe-eval'; 
           style-src ${webview.cspSource} 'unsafe-inline'; 
           font-src ${webview.cspSource}; 
-          img-src ${webview.cspSource} data:;">
+          img-src ${webview.cspSource} data:;
+          connect-src ${webview.cspSource} 'self';">
     <title>GitHub Style Agent - Professional</title>
     <style nonce="${nonce}">
       :root {
@@ -73,6 +74,38 @@ function getWebviewContent(webview, extensionUri) {
         --vscode-input-border: #3e3e42;
         --vscode-focusBorder: #007fd4;
         --vscode-textLink-foreground: #3794ff;
+      }
+      
+      .monaco-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 400px;
+        overflow: hidden;
+      }
+      
+      #editorContainer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+      }
+      
+      .welcome-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        background: var(--vscode-editor-background);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
         --vscode-progressBar-background: #0e70c0;
         --vscode-notifications-background: #252526;
         --vscode-notifications-border: #3e3e42;
@@ -699,6 +732,8 @@ function getWebviewContent(webview, extensionUri) {
                     <h2>GitHub Style Agent</h2>
                     <p>Configure your GitHub credentials and project requirements, then generate code that matches your personal coding style.</p>
                 </div>
+                <!-- This div will contain the actual Monaco editor -->
+                <div id="editorContainer" style="width: 100%; height: 100%; display: none;"></div>
             </div>
         </div>
     </div>
@@ -722,26 +757,59 @@ function getWebviewContent(webview, extensionUri) {
             }
         });
         
-        // Initialize Monaco Editor
-        require(['vs/editor/editor.main'], function () {
-            console.log('✅ Monaco Editor loaded successfully');
-            
-            // Create the editor when files are added
-            window.monacoReady = true;
-        }, function(error) {
-            console.error('❌ Failed to load Monaco Editor:', error);
-            showNotification('Failed to load Monaco Editor. Using fallback text editor.', 'error');
-        });
+        // Initialize Monaco Editor with better error handling
+        try {
+            require(['vs/editor/editor.main'], function () {
+                console.log('✅ Monaco Editor loaded successfully');
+                
+                // Create the editor when files are added
+                window.monacoReady = true;
+                
+                // Log success to help with debugging
+                showNotification('Monaco Editor loaded successfully', 'success');
+                
+                // If there are already files, make sure they're displayed
+                if (Object.keys(currentFiles).length > 0 && activeFile) {
+                    switchToFile(activeFile);
+                }
+            }, function(error) {
+                console.error('❌ Failed to load Monaco Editor:', error);
+                showNotification('Failed to load Monaco Editor. Using fallback text editor: ' + (error.message || 'Unknown error'), 'error');
+            });
+        } catch (e) {
+            console.error('❌ Exception during Monaco Editor initialization:', e);
+            showNotification('Exception during Monaco Editor initialization: ' + (e.message || 'Unknown error'), 'error');
+        }
         
-        // Create Monaco Editor instance
+        // Create Monaco Editor instance with enhanced debugging
         function createMonacoEditor(content = '', language = 'javascript') {
-            const container = document.getElementById('monacoContainer');
+            console.log('Creating Monaco Editor with language:', language);
+            const editorContainer = document.getElementById('editorContainer');
             
-            // Clear container
-            container.innerHTML = '';
+            if (!editorContainer) {
+                console.error('Editor container element not found!');
+                showNotification('Error: Editor container not found', 'error');
+                return null;
+            }
+            
+            // Make sure the welcome screen is hidden
+            hideWelcomeScreen();
+            
+            // Make sure the editor container is visible
+            editorContainer.style.display = 'block';
+            console.log('Editor container dimensions:', editorContainer.offsetWidth, 'x', editorContainer.offsetHeight);
             
             try {
-                monacoEditor = monaco.editor.create(container, {
+                // Check if monaco is available
+                if (!window.monaco) {
+                    console.error('Monaco namespace not available!');
+                    showNotification('Error: Monaco editor not loaded properly', 'error');
+                    createFallbackEditor(content);
+                    return null;
+                }
+                
+                console.log('Creating Monaco editor instance...');
+                monacoEditor = monaco.editor.create(editorContainer, {
                     value: content,
                     language: language,
                     theme: 'vs-dark',
@@ -817,20 +885,34 @@ function getWebviewContent(webview, extensionUri) {
         }
         
         function switchToFile(fileName) {
-            if (!currentFiles[fileName]) return;
+            if (!currentFiles[fileName]) {
+                console.error('File not found:', fileName);
+                return;
+            }
             
             activeFile = fileName;
             const file = currentFiles[fileName];
+            console.log('Switching to file:', fileName, 'Monaco ready:', window.monacoReady);
             
             if (window.monacoReady) {
-                if (monacoEditor) {
-                    // Create new model for the file
-                    const model = monaco.editor.createModel(file.content, file.language);
-                    monacoEditor.setModel(model);
-                } else {
-                    createMonacoEditor(file.content, file.language);
+                try {
+                    if (monacoEditor) {
+                        console.log('Using existing Monaco editor instance');
+                        // Create new model for the file
+                        const model = monaco.editor.createModel(file.content, file.language);
+                        monacoEditor.setModel(model);
+                    } else {
+                        console.log('Creating new Monaco editor instance');
+                        createMonacoEditor(file.content, file.language);
+                    }
+                } catch (e) {
+                    console.error('Error switching file in Monaco:', e);
+                    // Fallback to textarea if Monaco fails
+                    createFallbackEditor(file.content);
+                    showNotification('Error switching file in Monaco editor: ' + e.message, 'error');
                 }
             } else {
+                console.log('Monaco not ready, using fallback editor');
                 // Fallback to textarea if Monaco isn't ready
                 createFallbackEditor(file.content);
             }
@@ -920,16 +1002,56 @@ function getWebviewContent(webview, extensionUri) {
         }
         
         function hideWelcomeScreen() {
+            console.log('Hiding welcome screen');
             const welcomeScreen = document.getElementById('welcomeScreen');
-            welcomeScreen.style.display = 'none';
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+                console.log('Welcome screen hidden');
+            } else {
+                console.error('Welcome screen element not found!');
+            }
+            
+            // Make sure the Monaco container is visible
+            const container = document.getElementById('monacoContainer');
+            if (container) {
+                container.style.display = 'block';
+                container.style.height = '100%';
+                container.style.width = '100%';
+                console.log('Monaco container made visible');
+            } else {
+                console.error('Monaco container element not found!');
+            }
+            
+            // Make sure the editor container is visible
+            const editorContainer = document.getElementById('editorContainer');
+            if (editorContainer) {
+                editorContainer.style.display = 'block';
+                console.log('Editor container made visible');
+            } else {
+                console.error('Editor container element not found!');
+            }
         }
         
         function showCodeActions() {
-            document.getElementById('codeActions').style.display = 'flex';
+            console.log('Showing code actions');
+            const codeActions = document.getElementById('codeActions');
+            if (codeActions) {
+                codeActions.style.display = 'flex';
+                console.log('Code actions shown');
+            } else {
+                console.error('Code actions element not found!');
+            }
         }
         
         function hideCodeActions() {
-            document.getElementById('codeActions').style.display = 'none';
+            console.log('Hiding code actions');
+            const codeActions = document.getElementById('codeActions');
+            if (codeActions) {
+                codeActions.style.display = 'none';
+                console.log('Code actions hidden');
+            } else {
+                console.error('Code actions element not found!');
+            }
         }
         
         // Fallback editor for when Monaco fails
@@ -1147,11 +1269,21 @@ function getWebviewContent(webview, extensionUri) {
             // Clear existing files
             currentFiles = {};
             
+            // Hide welcome screen before adding files
+            hideWelcomeScreen();
+            showCodeActions();
+            
             // Add each generated file
             Object.entries(files).forEach(([fileName, fileData]) => {
                 const language = getLanguageFromFileName(fileName);
                 addFile(fileName, fileData.content, language);
             });
+            
+            // Switch to the first file
+            const firstFile = Object.keys(files)[0];
+            if (firstFile) {
+                switchToFile(firstFile);
+            }
         }
         
         function getLanguageFromFileName(fileName) {
