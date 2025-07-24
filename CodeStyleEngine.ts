@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 import { PatternAnalyzer } from './src/analyzers/PatternAnalyzer';
 import { CodeGenerator } from './src/generators/CodeGenerator';
-import { AnalysisDepth, SimpleStyleProfile } from './src/types';
+import { AnalysisDepth, SimpleStyleProfile } from './types';
 
 // Load environment variables
 dotenv.config();

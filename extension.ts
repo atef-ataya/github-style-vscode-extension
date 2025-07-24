@@ -10,7 +10,7 @@ import {
   analyzeMultipleReposPatterns,
   generateCodeSample,
 } from './CodeStyleEngine';
-import { SimpleStyleProfile } from './src/types';
+import { SimpleStyleProfile } from './types';
 
 // Enhanced message interfaces
 interface GenerationOptions {
@@ -101,7 +101,7 @@ const PROJECT_TEMPLATES = {
 
 export function activate(context: vscode.ExtensionContext): void {
   const disposable = vscode.commands.registerCommand(
-    'codestyle.generate',
+    'github-style-agent.generate-1753267655712',
     async (): Promise<void> => {
       try {
         const panel = vscode.window.createWebviewPanel(

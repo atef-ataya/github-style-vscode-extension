@@ -1,8 +1,8 @@
 {
-  "name": "codestyle-stylegen",
-  "displayName": "CodeStyle Code Generator",
+  "name": "github-style-agent",
+  "displayName": "GitHub Style Agent - Code Generator",
   "description": "Analyze GitHub repos and generate consistent code using your own style.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "atef-ataya",
   "repository": {
     "type": "git",
@@ -15,14 +15,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:codestyle.generate"
+    "onCommand:github-style-agent.generate-1753267655712"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "codestyle.generate",
-        "title": "CodeStyle Code Generator"
+        "command": "github-style-agent.generate-1753267655712",
+        "title": "GitHub Style Agent: Generate Code"
       }
     ]
   },
@@ -34,22 +34,15 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.js --fix",
     "lint:check": "eslint . --ext .ts,.js",
-    "test": "npm run test:unit",
-    "test:unit": "node src/tests/basic.test.js",
-    "test:watch": "npm run test:unit -- --watch",
     "clean": "rimraf out dist && del /q *.vsix 2>nul || echo No .vsix files to delete",
     "prepackage": "npm run build",
     "package": "vsce package",
-    "package:install": "code --install-extension codestyle-stylegen-0.0.1.vsix",
+    "package:install": "code --install-extension github-style-agent-1.0.0.vsix",
     "dev": "npm run watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "ci": "npm run lint:check && npm run type-check && npm run test",
-    "dev:enhanced": "npm run build && code --extensionDevelopmentPath=.",
-    "build:monaco": "node scripts/copy-monaco.js",
-    "prebuild": "npm run clean && npm run build:monaco",
-    "verify:monaco": "node scripts/verify-monaco.js",
-    "postbuild": "npm run verify:monaco"
+    "ci": "npm run lint:check && npm run type-check",
+    "dev:enhanced": "npm run build && code --extensionDevelopmentPath=."
   },
   "dependencies": {
     "@octokit/rest": "^20.1.2",
@@ -58,7 +51,6 @@
     "openai": "^4.20.1"
   },
   "devDependencies": {
-    "@types/jquery": "^3.5.32",
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",

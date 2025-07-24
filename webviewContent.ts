@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 export function getWebviewContent(
   webview: vscode.Webview,
   extensionUri: vscode.Uri
-): string {
+) {
   // Get URIs for Monaco Editor - FIXED PATHS
   const monacoLoaderUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, 'out', 'vs', 'loader.js')
@@ -588,6 +588,82 @@ export function getWebviewContent(
         50% { opacity: 0.5; }
       }
 
+      
+      /* Required field styling */
+      .form-group.required label::after {
+        content: ' *';
+        color: #f44336;
+        font-weight: bold;
+      }
+      
+      .form-group input.required,
+      .form-group textarea.required,
+      .form-group select.required {
+        border-left: 3px solid var(--vscode-textLink-foreground);
+      }
+      
+      /* Error states */
+      .form-group input.error,
+      .form-group textarea.error,
+      .form-group select.error {
+        border-color: #f44336 !important;
+        box-shadow: 0 0 0 1px #f44336 !important;
+      }
+      
+      .error-message {
+        color: #f44336;
+        font-size: 11px;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      
+      .error-message::before {
+        content: '⚠️';
+        font-size: 12px;
+      }
+      
+      /* Success states */
+      .form-group input.valid,
+      .form-group textarea.valid {
+        border-left: 3px solid #4caf50;
+      }
+      
+      /* Button states */
+      .generate-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: var(--vscode-button-background);
+      }
+      
+      .generate-btn:disabled:hover {
+        background: var(--vscode-button-background);
+      }
+      
+      /* Tooltip for disabled button */
+      .generate-btn[title]:disabled {
+        position: relative;
+      }
+      
+      .generate-btn[title]:disabled:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--vscode-notifications-background);
+        color: var(--vscode-editor-foreground);
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--vscode-notifications-border);
+        font-size: 11px;
+        white-space: pre-line;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      
       /* Scrollbar Styling */
       ::-webkit-scrollbar {
         width: 8px;
@@ -624,23 +700,23 @@ export function getWebviewContent(
                 </div>
                 <h3>🔍 GitHub Style Analysis</h3>
                 
-                <div class="form-group">
+                <div class="form-group required"><div class="form-group">
                     <label>GitHub Token</label>
-                    <input type="password" id="githubToken" placeholder="ghp_..." />
+                    <input type="password" id="githubToken" placeholder="ghp_..." / required class="required">
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group required"><div class="form-group">
                     <label>GitHub Username</label>
-                    <input type="text" id="githubUsername" placeholder="your-username" />
+                    <input type="text" id="githubUsername" placeholder="your-username" / required class="required">
                     <div class="status-indicator" id="usernameStatus" style="display: none;">
                         <div class="status-dot"></div>
                         <span>Repositories found</span>
                     </div>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group required"><div class="form-group">
                     <label>OpenAI API Key</label>
-                    <input type="password" id="openaiKey" placeholder="sk-..." />
+                    <input type="password" id="openaiKey" placeholder="sk-..." / required class="required">
                 </div>
                 
                 <div class="form-group">
@@ -719,9 +795,9 @@ export function getWebviewContent(
                     </select>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group required"><div class="form-group">
                     <label>What do you want to build?</label>
-                    <textarea id="codeSpec" placeholder="Describe your project in detail..."></textarea>
+                    <textarea id="codeSpec" placeholder="Describe your project in detail..." required class="required"></textarea>
                 </div>
                 
                 <div class="checkbox-group">
@@ -758,17 +834,17 @@ export function getWebviewContent(
                     <!-- Style profile details will be added here -->
                 </div>
                 <div class="cache-actions">
-                    <button class="action-btn" onclick="clearStyleCache()">
+                    <button class="action-btn" >
                         🗑️ Clear Cache
                     </button>
-                    <button class="action-btn" onclick="exportStyleProfile()">
+                    <button class="action-btn" >
                         💾 Export Style
                     </button>
                 </div>
             </div>
             
             <!-- Generate Button -->
-            <button class="generate-btn" id="generateBtn" onclick="startGeneration()">
+            <button class="generate-btn" id="generateBtn" >
                 🚀 Analyze & Generate
             </button>
         </div>
@@ -781,16 +857,16 @@ export function getWebviewContent(
                 </div>
                 
                 <div class="code-actions" id="codeActions" style="display: none;">
-                    <button class="action-btn" onclick="saveProject()" title="Save Project">
+                    <button class="action-btn"  title="Save Project">
                         💾 Save
                     </button>
-                    <button class="action-btn" onclick="exportFiles()" title="Export Files">
+                    <button class="action-btn"  title="Export Files">
                         📁 Export
                     </button>
-                    <button class="action-btn" onclick="copyCurrentFile()" title="Copy Code">
+                    <button class="action-btn"  title="Copy Code">
                         📋 Copy
                     </button>
-                    <button class="action-btn" onclick="downloadProject()" title="Download ZIP">
+                    <button class="action-btn"  title="Download ZIP">
                         ⬇️ Download
                     </button>
                 </div>
@@ -1032,7 +1108,7 @@ export function getWebviewContent(
                 tab.innerHTML = \`
                     <span class="file-icon">\${icon}</span>
                     <span class="file-name" title="\${fileName}">\${fileName}</span>
-                    <span class="close-btn" onclick="closeFile('\${fileName}', event)" title="Close">✕</span>
+                    <span class="close-btn"  title="Close">✕</span>
                 \`;
                 
                 tab.onclick = (e) => {
@@ -1171,11 +1247,10 @@ export function getWebviewContent(
         }
         
         // Types for message handling
-        type AuthStatus = 'success' | 'error' | 'pending';
-        type AuthType = 'github' | 'openai';
+        // Type definitions removed for JavaScript compatibility
 
         // Authentication status management
-        function updateAuthStatus(type: AuthType, status: AuthStatus, message?: string) {
+        function updateAuthStatus(type, status, message) {
             const element = document.getElementById(type + 'AuthStatus');
             const icon = document.getElementById(type + 'AuthIcon');
             
@@ -1200,7 +1275,7 @@ export function getWebviewContent(
         }
 
         // Repository analysis management
-        function addRepoToList(repoName: string) {
+        function addRepoToList(repoName) {
             const repoList = document.getElementById('repoList');
             if (!repoList) return;
             
@@ -1216,7 +1291,7 @@ export function getWebviewContent(
             repoList.appendChild(repoItem);
         }
 
-        function updateRepoProgress(repoName: string, progress: number) {
+        function updateRepoProgress(repoName, progress) {
             const repoItem = document.getElementById('repo-' + repoName);
             if (!repoItem) return;
             
@@ -1232,16 +1307,9 @@ export function getWebviewContent(
         }
 
         // Style cache management
-        interface StyleProfileData {
-            indentStyle: string;
-            indentSize: number;
-            quoteStyle: string;
-            useSemicolons: boolean;
-            fileCount: number;
-            reposAnalyzed?: number;
-        }
+        // Interface removed for JavaScript compatibility
 
-        function updateStyleProfile(profile: StyleProfileData) {
+        function updateStyleProfile(profile) {
             const styleProfile = document.getElementById('styleProfile');
             const cacheSection = document.getElementById('cacheSection');
             
@@ -1300,24 +1368,169 @@ export function getWebviewContent(
         }
 
         // Main generation function with enhanced debugging
-        async function startGeneration() {
+        
+        // Enhanced form validation
+        function validateForm() {
+            const errors = [];
+            const token = document.getElementById('githubToken')?.value?.trim();
+            const username = document.getElementById('githubUsername')?.value?.trim();
+            const openaiKey = document.getElementById('openaiKey')?.value?.trim();
+            const codeSpec = document.getElementById('codeSpec')?.value?.trim();
+            const maxRepos = parseInt(document.getElementById('maxRepos')?.value) || 0;
+            
+            // Clear previous error states
+            clearValidationErrors();
+            
+            // GitHub Token validation
+            if (!token) {
+                errors.push('GitHub Token is required');
+                markFieldAsError('githubToken', 'Please enter your GitHub Personal Access Token');
+            } else if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+                errors.push('Invalid GitHub Token format');
+                markFieldAsError('githubToken', 'Token should start with "ghp_" or "github_pat_"');
+            }
+            
+            // GitHub Username validation
+            if (!username) {
+                errors.push('GitHub Username is required');
+                markFieldAsError('githubUsername', 'Please enter your GitHub username');
+            } else if (!/^[a-zA-Z0-9]([a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/.test(username)) {
+                errors.push('Invalid GitHub Username format');
+                markFieldAsError('githubUsername', 'Please enter a valid GitHub username');
+            }
+            
+            // OpenAI API Key validation
+            if (!openaiKey) {
+                errors.push('OpenAI API Key is required');
+                markFieldAsError('openaiKey', 'Please enter your OpenAI API Key');
+            } else if (!openaiKey.startsWith('sk-')) {
+                errors.push('Invalid OpenAI API Key format');
+                markFieldAsError('openaiKey', 'OpenAI API Key should start with "sk-"');
+            }
+            
+            // Code Specification validation
+            if (!codeSpec) {
+                errors.push('Project description is required');
+                markFieldAsError('codeSpec', 'Please describe what you want to build');
+            } else if (codeSpec.length < 10) {
+                errors.push('Project description too short');
+                markFieldAsError('codeSpec', 'Please provide a more detailed description (at least 10 characters)');
+            }
+            
+            // Max Repos validation
+            if (maxRepos < 1 || maxRepos > 50) {
+                errors.push('Max repositories must be between 1 and 50');
+                markFieldAsError('maxRepos', 'Please enter a number between 1 and 50');
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors: errors
+            };
+        }
+        
+        function markFieldAsError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const formGroup = field?.closest('.form-group');
+            
+            if (field && formGroup) {
+                field.style.borderColor = '#f44336';
+                field.style.boxShadow = '0 0 0 1px #f44336';
+                
+                // Add error message
+                let errorMsg = formGroup.querySelector('.error-message');
+                if (!errorMsg) {
+                    errorMsg = document.createElement('div');
+                    errorMsg.className = 'error-message';
+                    errorMsg.style.cssText = 'color: #f44336; font-size: 11px; margin-top: 4px;';
+                    formGroup.appendChild(errorMsg);
+                }
+                errorMsg.textContent = message;
+            }
+        }
+        
+        function clearValidationErrors() {
+            // Remove error styling and messages
+            document.querySelectorAll('.form-group input, .form-group textarea, .form-group select').forEach(field => {
+                field.style.borderColor = '';
+                field.style.boxShadow = '';
+            });
+            
+            document.querySelectorAll('.error-message').forEach(msg => {
+                msg.remove();
+            });
+        }
+        
+        // Real-time validation for better UX
+        function setupRealTimeValidation() {
+            const fields = ['githubToken', 'githubUsername', 'openaiKey', 'codeSpec', 'maxRepos'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('blur', () => {
+                        // Validate just this field
+                        const validation = validateForm();
+                        updateGenerateButtonState();
+                    });
+                    
+                    field.addEventListener('input', () => {
+                        // Clear error state on input
+                        const formGroup = field.closest('.form-group');
+                        const errorMsg = formGroup?.querySelector('.error-message');
+                        if (errorMsg) {
+                            field.style.borderColor = '';
+                            field.style.boxShadow = '';
+                            errorMsg.remove();
+                        }
+                        updateGenerateButtonState();
+                    });
+                }
+            });
+        }
+        
+        function updateGenerateButtonState() {
+            const validation = validateForm();
+            const btn = document.getElementById('generateBtn');
+            
+            if (btn && !btn.disabled) {  // Don't override disabled state during generation
+                if (validation.isValid) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.title = '';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.6';
+                    btn.title = 'Please fill in all required fields correctly:\n• ' + validation.errors.join('\n• ');
+                }
+            }
+        }
+        
+                async function startGeneration() {
             console.log('🚀 startGeneration called');
             
             try {
+                // Validate form first
+                const validation = validateForm();
+                if (!validation.isValid) {
+                    console.log('❌ Validation failed:', validation.errors);
+                    showNotification('Please fix the following errors:\n• ' + validation.errors.join('\n• '), 'error');
+                    return;
+                }
+                
                 const token = document.getElementById('githubToken')?.value?.trim();
                 const username = document.getElementById('githubUsername')?.value?.trim();
                 const openaiKey = document.getElementById('openaiKey')?.value?.trim();
                 const codeSpec = document.getElementById('codeSpec')?.value?.trim();
                 const maxRepos = parseInt(document.getElementById('maxRepos')?.value) || 10;
                 
-                console.log('Form values:', { token: token ? '***' : 'empty', username, openaiKey: openaiKey ? '***' : 'empty', codeSpec: codeSpec ? 'provided' : 'empty', maxRepos });
-                
-                // Validation
-                if (!token || !username || !openaiKey || !codeSpec) {
-                    console.log('❌ Validation failed - missing required fields');
-                    showNotification('Please fill in all required fields', 'error');
-                    return;
-                }
+                console.log('Form values validated:', { 
+                    token: token ? 'provided' : 'missing', 
+                    username, 
+                    openaiKey: openaiKey ? 'provided' : 'missing', 
+                    codeSpec: codeSpec ? 'provided' : 'missing', 
+                    maxRepos 
+                });
                 
                 console.log('✅ Validation passed, starting generation...');
                 
@@ -1335,7 +1548,7 @@ export function getWebviewContent(
                 updateProgress('Authentication', 5, 'Verifying credentials...');
                 console.log('✅ Progress updated');
                 
-                // Send message to extension
+                // Send message to extension with validated data
                 console.log('📤 Sending message to extension...');
                 vscode.postMessage({
                     command: 'analyzeAndGenerate',
@@ -1345,15 +1558,19 @@ export function getWebviewContent(
                     codeSpec,
                     maxRepos,
                     includeComments: document.getElementById('includeComments')?.checked || false,
-                    includeDocstrings: document.getElementById('includeDocstrings')?.checked || false,
-                    includeVariableNames: document.getElementById('includeVariableNames')?.checked || false,
-                    includeFileStructure: document.getElementById('includeFileStructure')?.checked || false,
-                    includeCommitMessages: document.getElementById('includeCommitMessages')?.checked || false,
-                    includeReadmes: document.getElementById('includeReadmes')?.checked || false,
-                    outputFormat: document.getElementById('outputFormat')?.value || 'typescript',
-                    complexity: document.getElementById('complexity')?.value || 'medium',
-                    codeStyle: document.getElementById('codeStyle')?.value || 'clean',
-                    includeTests: document.getElementById('includeTests')?.checked || false
+                    includeTests: document.getElementById('includeTests')?.checked || false,
+                    complexity: document.getElementById('complexity')?.value || 'moderate',
+                    outputFormat: 'typescript',
+                    codeStyle: 'clean',
+                    options: {
+                        model: document.getElementById('aiModel')?.value || 'gpt-4',
+                        complexity: document.getElementById('complexity')?.value || 'moderate',
+                        includeTests: document.getElementById('includeTests')?.checked || false,
+                        includeComments: document.getElementById('includeComments')?.checked || false,
+                        template: document.getElementById('projectTemplate')?.value || 'custom',
+                        useTypeScript: document.getElementById('useTypeScript')?.checked || false,
+                        initGit: document.getElementById('initGit')?.checked || false
+                    }
                 });
                 console.log('✅ Message sent to extension');
                 
@@ -1422,66 +1639,25 @@ export function getWebviewContent(
         }
         
         // Enhanced Message types
-        interface AuthStatusMessage {
-            command: 'authStatus';
-            service: AuthType;
-            status: AuthStatus;
-            message?: string;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface ShowProgressMessage {
-            command: 'showProgress';
-            stage: string;
-            progress: number;
-            message: string;
-            timeElapsed?: number;
-            estimatedRemaining?: number;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface RepoAnalysisMessage {
-            command: 'repoAnalysis';
-            type: 'start' | 'progress' | 'complete';
-            repoName?: string;
-            progress?: number;
-            totalRepos?: number;
-            currentRepo?: number;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface StyleProfileMessage {
-            command: 'styleProfile';
-            profile: StyleProfileData;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface GenerationCompleteMessage {
-            command: 'generationComplete';
-            success: boolean;
-            error?: string;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface ShowStyleProfileMessage {
-            command: 'showStyleProfile';
-            profile: StyleProfileData;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface ShowGeneratedFilesMessage {
-            command: 'showGeneratedFiles';
-            files: Record<string, GeneratedFile>;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface ShowErrorMessage {
-            command: 'showError';
-            error: string;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface SaveSuccessMessage {
-            command: 'saveSuccess';
-            message?: string;
-        }
+        // Interface removed for JavaScript compatibility
 
-        interface CopySuccessMessage {
-            command: 'copySuccess';
-            message?: string;
-        }
+        // Interface removed for JavaScript compatibility
 
         type ExtensionMessage =
             | AuthStatusMessage
@@ -1501,7 +1677,7 @@ export function getWebviewContent(
         let totalRepositories = 0;
         let completedRepositories = 0;
 
-        window.addEventListener('message', (event: MessageEvent<ExtensionMessage>) => {
+        window.addEventListener('message', (event) => {
             const message = event.data;
             
             switch (message.command) {
@@ -1558,7 +1734,7 @@ export function getWebviewContent(
             }
         });
 
-        function handleRepoAnalysis(message: RepoAnalysisMessage) {
+        function handleRepoAnalysis(message) {
             switch (message.type) {
                 case 'start':
                     if (message.repoName) {
@@ -1615,7 +1791,7 @@ export function getWebviewContent(
             }
         }
 
-        function formatTime(seconds: number): string {
+        function formatTime(seconds) {
             if (seconds < 60) {
                 return seconds + 's';
             }
@@ -1646,10 +1822,7 @@ export function getWebviewContent(
                 \`\${profile.confidence.level} (\${profile.confidence.percentage}%)\` : 'Unknown';
         }
         
-        interface GeneratedFile {
-            content: string;
-            language: string;
-        }
+        // Interface removed for JavaScript compatibility
 
         function displayGeneratedFiles(files: Record<string, GeneratedFile>) {
             console.log('📁 Displaying generated files:', files);
@@ -1693,7 +1866,7 @@ export function getWebviewContent(
             }
         }
         
-        function getLanguageFromFileName(fileName: string): string {
+        function getLanguageFromFileName(fileName: string) {
             if (!fileName || typeof fileName !== 'string') {
                 console.warn('⚠️ Invalid fileName for language detection:', fileName);
                 return 'plaintext';
@@ -1719,7 +1892,59 @@ export function getWebviewContent(
         }
         
         // Initialize the interface
+        
+        // Event listeners setup (CSP compliant)
+        function setupEventListeners() {
+            // Clear cache button
+            const clearCacheBtn = document.querySelector('[data-action="clearCache"]');
+            if (clearCacheBtn) {
+                clearCacheBtn.addEventListener('click', clearStyleCache);
+            }
+            
+            // Export style profile button
+            const exportBtn = document.querySelector('[data-action="exportStyle"]');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', exportStyleProfile);
+            }
+            
+            // Generate button
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', startGeneration);
+            }
+            
+            // File action buttons
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', saveProject);
+            }
+            
+            const exportFilesBtn = document.getElementById('export-btn');
+            if (exportFilesBtn) {
+                exportFilesBtn.addEventListener('click', exportFiles);
+            }
+            
+            const downloadBtn = document.getElementById('download-btn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', downloadProject);
+            }
+            
+            const copyBtn = document.getElementById('copy-btn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', copyCurrentFile);
+            }
+        }
+        
         console.log('🚀 GitHub Style Agent - Enhanced UI initialized');
+        
+        // Setup event listeners after DOM is ready
+        setTimeout(setupEventListeners, 100);
+        
+        // Initialize form validation
+        setTimeout(() => {
+            setupRealTimeValidation();
+            updateGenerateButtonState();
+        }, 100);
         
         // Show welcome message
         setTimeout(() => {
