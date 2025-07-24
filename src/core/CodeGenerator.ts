@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { SimpleStyleProfile } from '../../types';
+import { SimpleStyleProfile } from './types';
 
 export class CodeGenerator {
   constructor(

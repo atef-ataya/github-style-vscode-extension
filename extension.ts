@@ -10,7 +10,7 @@ import {
   analyzeMultipleReposPatterns,
   generateCodeSample,
 } from './CodeStyleEngine';
-import { SimpleStyleProfile } from './types';
+import { SimpleStyleProfile } from './src/types/index';
 
 // Enhanced message interfaces
 interface GenerationOptions {

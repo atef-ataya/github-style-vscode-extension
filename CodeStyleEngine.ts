@@ -2,9 +2,9 @@ import { Octokit } from '@octokit/rest';
 import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
 
-import { PatternAnalyzer } from './src/analyzers/PatternAnalyzer';
-import { CodeGenerator } from './src/generators/CodeGenerator';
-import { AnalysisDepth, SimpleStyleProfile } from './types';
+import { PatternAnalyzer } from './src/core/PatternAnalyzer';
+import { CodeGenerator } from './src/core/CodeGenerator';
+import { AnalysisDepth, SimpleStyleProfile } from './src/types';
 
 // Load environment variables
 dotenv.config();

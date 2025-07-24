@@ -1,4 +1,4 @@
-import { AnalysisProgress } from '../../types';
+import { AnalysisProgress } from './types';
 
 export class ProgressTracker {
   private currentProgress: AnalysisProgress;

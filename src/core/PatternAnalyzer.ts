@@ -1,4 +1,4 @@
-import { AnalysisDepth, SimpleStyleProfile } from '../../types';
+import { AnalysisDepth, SimpleStyleProfile } from './types';
 
 export class PatternAnalyzer {
   private styleProfile: Record<string, number> = {};

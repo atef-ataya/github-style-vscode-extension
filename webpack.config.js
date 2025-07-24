@@ -19,7 +19,7 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        exclude: [/node_modules/, /vscode-extension/],
+        exclude: [/node_modules/, /vscode-extension/, /src\/tests/],
         use: [
           {
             loader: 'ts-loader'
